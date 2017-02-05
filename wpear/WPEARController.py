@@ -4,30 +4,35 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 
 def StartRun():
-    print "Do Stuff"
-    sample1='sample_data/multi_1.ak_10m.dp.201612.grb2'
-    Visualize(sample1)
+    shapeFile = "shapefile/tl_2013_18_cousub/tl_2013_18_cousub"
+    gribFile='sample_data/multi_2.at_15m.t18z.grib2'
+    Visualize(gribFile, shapeFile)
 
 
-def Visualize(grib):
+def Visualize(gribFile, shapeFile):
     """Visualize data
     Data from local sample Grib2 file
     """
-    plt.figure()
-    grbs=pygrib.open(grib)
-    grb = grbs.select(name='Primary wave direction')[0]
+    plt.figure(figsize=(12,16))
+    grbs=pygrib.open(gribFile)
+    grb = grbs.select(name='Wind speed')[0]
     data=grb.values
     lat,lon = grb.latlons()
-    m=Basemap(projection='mill',lat_ts=10,llcrnrlon=lon.min(), \
-            urcrnrlon=lon.max(),llcrnrlat=lat.min(),urcrnrlat=lat.max(), \
-            resolution='c')
+
+    m = Basemap(resolution='l', # c, l, i, h, f or None
+            projection='merc',
+            lat_0=40.2, lon_0=-86.1,
+            llcrnrlon=-88.1, llcrnrlat= 37.77,
+            urcrnrlon=-84.78, urcrnrlat=41.76)
+
     x, y = m(lon,lat)
-    cs = m.pcolormesh(x,y,data,shading='flat',cmap=plt.cm.jet)
+    cs = m.pcolormesh(x,y,data,
+                    shading='flat',
+                    cmap=plt.cm.jet)
+
     m.drawcoastlines()
-    m.fillcontinents()
-    m.drawmapboundary()
-    m.drawparallels(np.arange(-90.,120.,30.),labels=[1,0,0,0])
-    m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+    m.fillcontinents(color='#f2f2f2',lake_color='#46bcec')
+    m.drawmapboundary(fill_color='#46bcec')
     plt.colorbar(cs,orientation='vertical')
-    plt.title('NWW3 Primary wave direction from GRiB')
+    m.readshapefile(shapeFile,'areas')
     plt.show()
