@@ -34,32 +34,37 @@ class Visualizer():
     def visualize(self):
         """Visualize Data from gribFile
         """
-        plt.figure(figsize=(7,12))
+        # Extract Data
         grbs=pygrib.open(self.gribFile)
         grb = grbs.select(name='Temperature')[0]
         data=grb.values
         lat,lon = grb.latlons()
 
-        # m = Basemap(resolution='l', # c, l, i, h, f or None
-        #         projection='merc',
-        #         lat_0=40.2, lon_0=-86.1,
-        #         llcrnrlon=-88.1, llcrnrlat= 37.77,
-        #         urcrnrlon=-84.78, urcrnrlat=41.76)
+        fig = plt.figure(figsize=(7,12))
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
 
-        m=Basemap(resolution='c',
+        m = Basemap(resolution='c', # c, l, i, h, f or None
                 projection='merc',
-                llcrnrlon=lon.min(), urcrnrlon=lon.max(),
-                llcrnrlat=lat.min(),urcrnrlat=lat.max())
+                lat_0=40.2, lon_0=-86.1,
+                llcrnrlon=-88.1, llcrnrlat= 37.77,
+                urcrnrlon=-84.78, urcrnrlat=41.76)
+
+
+        # m=Basemap(resolution='c',
+        #         projection='cyl',
+        #         lat_0=40.2, lon_0=-86.1,
+        #         llcrnrlon=lon.min(), urcrnrlon=lon.max(),
+        #         llcrnrlat=lat.min(),urcrnrlat=lat.max())
+
+        m.drawcoastlines()
+        # m.fillcontinents(color='#f2f2f2',lake_color='#46bcec')
+        # m.drawmapboundary(fill_color='#46bcec')
 
         x, y = m(lon,lat)
         cs = m.pcolormesh(x,y,data,
                         shading='flat',
                         cmap=plt.cm.jet)
-
-        m.drawcoastlines()
-        m.fillcontinents(color='#f2f2f2',lake_color='#46bcec')
-        m.drawmapboundary(fill_color='#46bcec')
-        plt.colorbar(cs,orientation='vertical')
+        cbar = m.colorbar(cs,location='bottom')
         m.readshapefile(self.shapeFile,'areas')
         plt.show()
 
