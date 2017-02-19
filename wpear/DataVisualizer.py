@@ -43,17 +43,21 @@ class DataVisualizer():
         unit = grib_object['units']
         data_type = grib_object['name']
 
-        fig = plt.figure(figsize=(7,12))
+        fig = plt.figure(figsize=(8,8))
         ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
 
         m = Basemap(
-                width=9000000,
-                height=12000000,
                 resolution='c', # c, l, i, h, f or None
-                projection='lcc',
-                lat_0=40.2, lon_0=-86.1,
-                llcrnrlon=-88.1, llcrnrlat= 37.77,
-                urcrnrlon=-84.78, urcrnrlat=41.76)
+                projection='cyl',
+                lat_0=39.72, lon_0=-86.29,
+                llcrnrlon=-87.79, llcrnrlat= 38.22,
+                urcrnrlon=-84.79, urcrnrlat=41.22)
+
+        parallels = np.arange(38.22, 41.22, 0.5)
+        m.drawparallels(parallels,labels=[False,True,True,False])
+        meridians = np.arange(-87.79, -84.79, 0.5)
+        m.drawmeridians(meridians,labels=[True,False,False,True],
+                        xoffset=-1.5 ,yoffset=1)
 
         x, y = m(lon,lat)
         cs = m.pcolormesh(x,y,data,
@@ -63,10 +67,11 @@ class DataVisualizer():
         cbar = m.colorbar(cs,location='bottom', pad=0.05,
                           spacing='proportional')
         cbar_ax = cbar.ax
-        cbar_ax.text(0.0, -1.0, unit, horizontalalignment='left')
+        cbar_ax.text(0.0, -1.3, unit, horizontalalignment='left')
         m.readshapefile(self.shapeFile,'areas')
         plt.title(data_type)
         plt.savefig(file_name)
+        # plt.show()
 
 
 # Make a static DataVisualizer(default)
@@ -75,7 +80,7 @@ v = DataVisualizer(None)
 # Manually get grib data object
 gribFile = './sample_data/hrrr.t00z.wrfnatf00.grib2'
 grbs = pygrib.open(gribFile)
-grb = grbs.select(name='Vertical velocity')[0]
+grb = grbs.select(name='Temperature')[0]
 
 # Generate visualization
 file_name = "out/pic.jpg"
