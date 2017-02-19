@@ -4,6 +4,7 @@ import pygrib
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
+from mpl_toolkits.mplot3d import Axes3D
 
 class DataVisualizer():
     """A DataVisualizer generates visualizations of data from converted grib file.
@@ -34,7 +35,7 @@ class DataVisualizer():
 
 
     def Heatmap(self, grib_object, file_name):
-        """Visualize Data from grib object
+        """Generate Heatmap with Data from grib object
         grib_object: an object containing raw data to be visualized
         file_name:   a string representing the name of generated picture
         """
@@ -58,7 +59,7 @@ class DataVisualizer():
         meridians = np.arange(-87.79, -84.79, 0.5)
         m.drawmeridians(meridians,labels=[True,False,False,True])
 
-        x, y = m(lon,lat)
+        x,y = m(lon, lat)
         cs = m.pcolormesh(x,y,data,
                         shading='flat',
                         cmap=plt.cm.jet)
@@ -73,6 +74,29 @@ class DataVisualizer():
         # plt.show()
 
 
+    def Scatter_Plot(self, grib_object, file_name):
+        """Generate Scatter Plot with Data from grib object
+        grib_object: an object containing raw data to be visualized
+        file_name:   a string representing the name of generated picture
+        """
+        data = grib_object.values
+        lat,lon = grib_object.latlons()
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        size = len(lat) * len(lat[0])
+        xs = lon.reshape(size, )
+        ys = lat.reshape(size, )
+        zs = data.reshape(size, )
+
+        ax.plot(xs, ys, zs)
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitudes') 
+        ax.set_zlabel(grib_object['name'])
+        # plt.savefig(file_name)
+        plt.show()
+
+
 # Make a static DataVisualizer(default)
 v = DataVisualizer(None)
 
@@ -83,4 +107,5 @@ grb = grbs.select(name='Temperature')[0]
 
 # Generate visualization
 file_name = "out/pic.jpg"
-v.Heatmap(grb, file_name)
+# v.Heatmap(grb, file_name)
+v.Scatter_Plot(grb, file_name)
