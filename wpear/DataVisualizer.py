@@ -56,16 +56,15 @@ class DataVisualizer():
         parallels = np.arange(38.22, 41.22, 0.5)
         m.drawparallels(parallels,labels=[False,True,True,False])
         meridians = np.arange(-87.79, -84.79, 0.5)
-        m.drawmeridians(meridians,labels=[True,False,False,True],
-                        xoffset=-1.5 ,yoffset=1)
+        m.drawmeridians(meridians,labels=[True,False,False,True])
 
         x, y = m(lon,lat)
         cs = m.pcolormesh(x,y,data,
                         shading='flat',
                         cmap=plt.cm.jet)
 
-        cbar = m.colorbar(cs,location='bottom', pad=0.05,
-                          spacing='proportional')
+        cbar = plt.colorbar(cs,location='bottom', fraction=0.046, pad=0.06)
+        # Adjust the position of Unit
         cbar_ax = cbar.ax
         cbar_ax.text(0.0, -1.3, unit, horizontalalignment='left')
         m.readshapefile(self.shapeFile,'areas')
