@@ -34,6 +34,17 @@ class DataVisualizer():
         return temperatures * 1.8 - 459.67
 
 
+    def setPlotLabels(self, ax, grib_object):
+        """Set labels for plots
+        ax: axis object
+        grib_object: an object containing raw data to be visualized
+        """
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitudes')
+        ax.set_zlabel(grib_object['name'] + '(' + grib_object['units'] + ')')
+
+
+
     def Heatmap(self, grib_object, file_name):
         """Generate Heatmap with Data from grib object
         grib_object: an object containing raw data to be visualized
@@ -74,8 +85,8 @@ class DataVisualizer():
         # plt.show()
 
 
-    def Scatter_Plot(self, grib_object, file_name):
-        """Generate Scatter Plot with Data from grib object
+    def SimplePlot(self, grib_object, file_name):
+        """Generate Basic 3D Stat Plot with Data from grib object
         grib_object: an object containing raw data to be visualized
         file_name:   a string representing the name of generated picture
         """
@@ -90,11 +101,60 @@ class DataVisualizer():
         zs = data.reshape(size, )
 
         ax.plot(xs, ys, zs)
-        ax.set_xlabel('Longitude')
-        ax.set_ylabel('Latitudes') 
-        ax.set_zlabel(grib_object['name'])
-        # plt.savefig(file_name)
-        plt.show()
+
+        # Set Lables
+        self.setPlotLabels(ax, grib_object)
+
+        plt.savefig(file_name)
+        # plt.show()
+
+
+    def WireframePlot(self, grib_object, file_name):
+        """Generate 3D Wireframe Plot with Data from grib object
+        grib_object: an object containing raw data to be visualized
+        file_name:   a string representing the name of generated picture
+        """
+        data = grib_object.values
+        lat,lon = grib_object.latlons()
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        x = lon
+        y = lat
+        z = data
+
+        ax.plot_wireframe(x, y, z, rstride=1210, cstride=1210)
+        # Set Lables
+        self.setPlotLabels(ax, grib_object)
+
+        plt.savefig(file_name)
+
+
+    def SurfacePlot(self, grib_object, file_name):
+        """Generate a 3D surface colored plot
+        grib_object: an object containing raw data to be visualized
+        file_name:   a string representing the name of generated picture
+        """
+        data = grib_object.values
+        lat,lon = grib_object.latlons()
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        x = lon
+        y = lat
+        z = data
+
+        surf = ax.plot_surface(x, y, z, cmap=plt.cm.coolwarm,
+                               rstride=15, cstride=15,
+                               linewidth=0, antialiased=False)
+        # Set Lables
+        self.setPlotLabels(ax, grib_object)
+        fig.colorbar(surf, shrink=0.5, aspect=5)
+        plt.title(grib_object['name'])
+        tlt = ax.title
+        tlt.set_position([0.6, 1])
+
+        plt.savefig(file_name)
 
 
 # Make a static DataVisualizer(default)
@@ -108,4 +168,6 @@ grb = grbs.select(name='Temperature')[0]
 # Generate visualization
 file_name = "out/pic.jpg"
 # v.Heatmap(grb, file_name)
-v.Scatter_Plot(grb, file_name)
+# v.SimplePlot(grb, file_name)
+# v.WireframePlot(grb, file_name)
+v.SurfacePlot(grb, file_name)
