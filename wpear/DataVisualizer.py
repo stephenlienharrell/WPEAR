@@ -1,6 +1,7 @@
 #! /usr/bin/python
 
 import pygrib
+import random
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
@@ -35,7 +36,7 @@ class DataVisualizer():
 
 
     def setPlotLabels(self, ax, grib_object):
-        """Set labels for plots
+        """Set labels for the plot
         ax: axis object
         grib_object: an object containing raw data to be visualized
         """
@@ -43,6 +44,14 @@ class DataVisualizer():
         ax.set_ylabel('Latitudes')
         ax.set_zlabel(grib_object['name'] + '(' + grib_object['units'] + ')')
 
+
+    def setTitle(self, ax, grib_object):
+        """Set title for plot
+        grib_object: an object containing raw data to be visualized
+        """
+        plt.title(grib_object['name'])
+        tlt = ax.title
+        tlt.set_position([0.6, 1])
 
 
     def Heatmap(self, grib_object, file_name):
@@ -82,7 +91,7 @@ class DataVisualizer():
         m.readshapefile(self.shapeFile,'areas')
         plt.title(data_type)
         plt.savefig(file_name)
-        # plt.show()
+
 
 
     def SimplePlot(self, grib_object, file_name):
@@ -100,13 +109,12 @@ class DataVisualizer():
         ys = lat.reshape(size, )
         zs = data.reshape(size, )
 
-        ax.plot(xs, ys, zs)
+        ax.plot(xs, ys, zs, color = 'black')
 
-        # Set Lables
         self.setPlotLabels(ax, grib_object)
+        self.setTitle(ax, grib_object)
 
         plt.savefig(file_name)
-        # plt.show()
 
 
     def WireframePlot(self, grib_object, file_name):
@@ -124,8 +132,9 @@ class DataVisualizer():
         z = data
 
         ax.plot_wireframe(x, y, z, rstride=1210, cstride=1210)
-        # Set Lables
+
         self.setPlotLabels(ax, grib_object)
+        self.setTitle(ax, grib_object)
 
         plt.savefig(file_name)
 
@@ -149,13 +158,37 @@ class DataVisualizer():
                                linewidth=0, antialiased=False)
         # Set Lables
         self.setPlotLabels(ax, grib_object)
+        self.setTitle(ax, grib_object)
         fig.colorbar(surf, shrink=0.5, aspect=5)
-        plt.title(grib_object['name'])
-        tlt = ax.title
-        tlt.set_position([0.6, 1])
 
         plt.savefig(file_name)
 
+
+    def ScatterPlot(self, grib_object, file_name):
+        """Generate 3D Scatter Plot
+        grib_object: an object containing raw data to be visualized
+        file_name:   a string representing the name of generated picture
+        """
+        data = grib_object.values
+        lat,lon = grib_object.latlons()
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        N = len(lon) * len(lon[0])
+        xs = lon.reshape(N, )
+        ys = lat.reshape(N, )
+        zs = data.reshape(N, )
+
+        idx = random.sample(range(N), 1000)
+
+        ax.scatter(xs[idx], ys[idx], zs[idx], alpha=0.5,cmap=plt.cm.flag)
+        # Set Lables
+        self.setPlotLabels(ax, grib_object)
+        self.setTitle(ax, grib_object)
+        plt.savefig(file_name)
+
+
+# GIF
 
 # Make a static DataVisualizer(default)
 v = DataVisualizer(None)
@@ -170,4 +203,5 @@ file_name = "out/pic.jpg"
 # v.Heatmap(grb, file_name)
 # v.SimplePlot(grb, file_name)
 # v.WireframePlot(grb, file_name)
-v.SurfacePlot(grb, file_name)
+# v.SurfacePlot(grb, file_name)
+v.ScatterPlot(grb, file_name)
