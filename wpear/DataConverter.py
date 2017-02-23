@@ -11,10 +11,11 @@ def convert(inputFilePath, outputFilePath):
 
 	# extract the required region = Indiana
 	reqdata, reqlats, reqlons = gobj.data(lat1=38.22,lat2=41.22,lon1=-87.79,lon2=-84.79)
+	reqmin = reqdata.min()
 	# print reqdata.shape, lats.min(), lats.max(), lons.min(), lons.max()
 
 	# initialize new data array with extracted data
-	newdata = np.zeros(gobj.values.shape, dtype=np.float32)
+	newdata = np.full(gobj.values.shape, reqmin, dtype=np.float32, order='C')	
 	totalsize = len(lats)*len(lats[0])
 	rowsize = len(lats[0])
 	reqdatacount = 0
