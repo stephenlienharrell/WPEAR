@@ -1,4 +1,4 @@
-from selenium import webdriver
+#from selenium import webdriver
 import webbrowser
 
 def showWebsite(forecast_image, observed_image, compared_image, time):
