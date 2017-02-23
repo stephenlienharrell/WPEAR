@@ -5,6 +5,7 @@ import DataDownloader
 import DataConverter
 import DataVisualizer
 import DataComparator
+import WebsiteGenerator
 
 
 DOWNLOAD_DIRECTORY = '/downloads'
@@ -62,3 +63,6 @@ def StartRun():
 
     v = DataVisualizer.DataVisualizer(None)
     v.Heatmap(grb, file_name)
+
+    print "Creating website for forecasts"
+    WebsiteGenerator.showWebsite("out/fore1.jpg", "out/fore2.jpg", "out/compare.jpg")
