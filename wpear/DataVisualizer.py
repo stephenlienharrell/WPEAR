@@ -191,17 +191,17 @@ class DataVisualizer():
 # GIF
 
 # Make a static DataVisualizer(default)
-v = DataVisualizer(None)
+#v = DataVisualizer(None)
 
 # Manually get grib data object
-gribFile = './sample_data/hrrr.t00z.wrfnatf00.grib2'
-grbs = pygrib.open(gribFile)
-grb = grbs.select(name='Temperature')[0]
+#gribFile = './sample_data/hrrr.t00z.wrfnatf00.grib2'
+#grbs = pygrib.open(gribFile)
+#grb = grbs.select(name='Temperature')[0]
 
 # Generate visualization
-file_name = "out/pic.jpg"
+#file_name = "out/pic.jpg"
 # v.Heatmap(grb, file_name)
 # v.SimplePlot(grb, file_name)
 # v.WireframePlot(grb, file_name)
 # v.SurfacePlot(grb, file_name)
-v.ScatterPlot(grb, file_name)
+#v.ScatterPlot(grb, file_name)

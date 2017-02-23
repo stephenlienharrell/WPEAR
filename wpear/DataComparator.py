@@ -26,4 +26,4 @@ def DataComparator(forecast_file, observed_file):
 	# return grib message
 	return gobj
 
-DataComparator('hrrr.t15z.wrfsubhf01.grib2', 'hrrr.t15z.wrfsubhf01.grib2')
+#DataComparator('hrrr.t15z.wrfsubhf01.grib2', 'hrrr.t15z.wrfsubhf01.grib2')

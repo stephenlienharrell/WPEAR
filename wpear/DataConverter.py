@@ -3,10 +3,8 @@
 import pygrib, os
 import numpy as np
 
-outputFolderPath = 'convertedFiles/'
-
-def convert(outputFilePath):
-	gfile = pygrib.open('sourceFileDownloads/hrrr.t02z.wrfsfcf01.grib2')
+def convert(inputFilePath, outputFilePath):
+	gfile = pygrib.open(inputFilePath)
 	gobj = gfile.select(name='2 metre temperature')[0]
 	lats = gobj.latlons()[0]
 	lons = gobj.latlons()[1]
@@ -37,9 +35,7 @@ def convert(outputFilePath):
 	# save message object in file
 	msg = gobj.tostring()
 	gfile.close()
-	fullFilePath = outputFolderPath + outputFilePath
-	if not os.path.exists(outputFolderPath):
-			os.makedirs(outputFolderPath)
+	fullFilePath = outputFilePath
 	grbout = open(fullFilePath,'wb')
 	grbout.write(msg)
 	grbout.close()
@@ -49,4 +45,4 @@ def convert(outputFilePath):
 
 
 
-print convert('out1.grib2')
+#print convert('out1.grib2')
