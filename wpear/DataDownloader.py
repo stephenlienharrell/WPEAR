@@ -11,7 +11,7 @@ class DataDownloader():
 	ext = ('grib2.gz', 'grib2')
 
 	def download(self, url, filedir, defaultdownloaddir='/sourceFileDownloads'):
-		downloadDirectory = os.getcwd() + defaultdownloaddir
+		downloadDirectory = defaultdownloaddir
 		if not os.path.exists(downloadDirectory):
 			os.makedirs(downloadDirectory)
 

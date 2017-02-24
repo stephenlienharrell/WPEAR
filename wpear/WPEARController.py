@@ -8,9 +8,10 @@ import DataComparator
 import WebsiteGenerator
 
 
-DOWNLOAD_DIRECTORY = '/downloads'
+DOWNLOAD_DIRECTORY = 'downloads'
+CONVERTED_DIRECTORY = 'converted'
 HRRR_MAIN_URL = 'http://www.ftp.ncep.noaa.gov/'
-HRRR_DIRECTORY = 'data/nccf/com/hrrr/prod/hrrr.%s' % datetime.datetime.now().strftime("%Y%m%d")
+HRRR_DIRECTORY = 'data/nccf/com/hrrr/prod/hrrr.%s'
 
 def StartRun():
 
@@ -18,10 +19,12 @@ def StartRun():
     downloader = DataDownloader.DataDownloader()
     hrrr_file1 = 'hrrr.t02z.wrfsfcf00.grib2'
     hrrr_file2 = 'hrrr.t04z.wrfsfcf00.grib2'
+    timestamp = datetime.datetime.now().strftime("%Y%m%d")
+    hrrr_dir = HRRR_DIRECTORY % timestamp
 
     
-    file1_url = '%s/%s' % (HRRR_DIRECTORY, hrrr_file1)
-    file2_url = '%s/%s' % (HRRR_DIRECTORY, hrrr_file2)
+    file1_url = '%s/%s' % (hrrr_dir, hrrr_file1)
+    file2_url = '%s/%s' % (hrrr_dir, hrrr_file2)
     print "Downloading Forecast 1"
     d_file1 = downloader.download(HRRR_MAIN_URL, file1_url, DOWNLOAD_DIRECTORY)
     print "Downloading Forecast 2"
@@ -29,12 +32,14 @@ def StartRun():
 
     # do converted file here
     print "Converting Forecast 1"
-    DataConverter.convert(d_file1, 'converted/%s' % hrrr_file1)
+    converted_file1 = '%s/%s' % (CONVERTED_DIRECTORY, hrrr_file1)
+    converted_file2 = '%s/%s' % (CONVERTED_DIRECTORY, hrrr_file2)
+    DataConverter.convert(d_file1, converted_file1)
     print "Converting Forecast 2"
-    DataConverter.convert(d_file2, 'converted/%s' % hrrr_file2)
+    DataConverter.convert(d_file2, converted_file2)
    
     print "Creating heatmap for Forecast 1"
-    gribFile = 'converted/%s' % hrrr_file1
+    gribFile = converted_file1
     grbs = pygrib.open(gribFile)
     grb = grbs.select(name='2 metre temperature')[0]
     file_name = "out/fore1.jpg"
@@ -45,14 +50,13 @@ def StartRun():
 
 
     print "Creating heatmap for Forecast 2"
-    gribFile = 'converted/%s' % hrrr_file2
+    gribFile = converted_file2
     grbs = pygrib.open(gribFile)
     grb = grbs.select(name='2 metre temperature')[0]
     file_name = "out/fore2.jpg"
 
     v = DataVisualizer.DataVisualizer(None)
     v.Heatmap(grb, file_name)
-
 
 
     print "Creating comparison between the two forecasts"
@@ -65,4 +69,6 @@ def StartRun():
     v.Heatmap(grb, file_name)
 
     print "Creating website for forecasts"
-    WebsiteGenerator.showWebsite("out/fore1.jpg", "out/fore2.jpg", "out/compare.jpg")
+    hrrr_file1_name = "%s-%s" % (hrrr_file1, timestamp)
+    hrrr_file2_name = "%s-%s" % (hrrr_file1, timestamp)
+    WebsiteGenerator.showWebsite("out/fore1.jpg", hrrr_file1_name, "out/fore2.jpg", hrrr_file2_name, "out/compare.jpg")
