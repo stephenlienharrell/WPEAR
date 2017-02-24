@@ -10,7 +10,7 @@ def convert(inputFilePath, outputFilePath):
 	lons = gobj.latlons()[1]
 
 	# extract the required region = Indiana
-	reqdata, reqlats, reqlons = gobj.data(lat1=38.22,lat2=41.22,lon1=-87.79,lon2=-84.79)
+	reqdata, reqlats, reqlons = gobj.data(lat1=37.22,lat2=41.22,lon1=-88.79,lon2=-84.79)
 	reqmin = reqdata.min()
 	# print reqdata.shape, lats.min(), lats.max(), lons.min(), lons.max()
 
