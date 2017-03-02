@@ -17,9 +17,8 @@ HRRR_DIRECTORY = 'data/nccf/com/hrrr/prod/hrrr.%s'
 
 
 def StartRun():
-    rtma_obs = RTMAObservations.RTMAObservations()
-    rtma_obs.DownloadData(datetime.datetime.utcnow())
-    rtma_obs.DownloadData()
+    today_rtma_obs = RTMAObservations.RTMAObservations(datetime.datetime.utcnow())
+    today_rtma_obs.DownloadData()
 
 
 def StartRunOld():
