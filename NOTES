@@ -1,0 +1,25 @@
+interpolation - bi linear (Numpy) interp
+
+hrrr.t00z.wrfnatf00.grib2
+     ^^^         ^^
+     hours after midnight GMT
+                 What hour of forecast in the future
+
+
+use wrfsfc
+
+
+54:40470754:d=2017030101:TMP:2 m above ground:13 hour fcst:
+57:44437968:d=2017030101:DPT:2 m above ground:13 hour fcst: 
+
+
+RTMS
+
+ftp://ftp.ncep.noaa.gov/pub/data/nccf/com/rtma/prod/rtma2p5.20170228/
+
+rtma2p5.t00z.2dvaranl_ndfd.grb2
+
+54 and 57 from HRRR map to 3 and 4 from RTMS respectively
+
+3:2 metre temperature:K (instant):lambert:heightAboveGround:level 2 m:fcst time 0 hrs:from
+4:2 metre dewpoint temperature:K (instant):lambert:heightAboveGround:level 2 m:fcst time 0 hrs:from 201703010000
