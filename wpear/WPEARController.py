@@ -1,10 +1,11 @@
 import datetime
 import pygrib
 
-import DataDownloader
-import DataConverter
-import DataVisualizer
 import DataComparator
+import DataConverter
+import DataDownloader
+import DataVisualizer
+import RTMAObservations
 import WebsiteGenerator
 
 
@@ -13,7 +14,15 @@ CONVERTED_DIRECTORY = 'converted'
 HRRR_MAIN_URL = 'http://www.ftp.ncep.noaa.gov/'
 HRRR_DIRECTORY = 'data/nccf/com/hrrr/prod/hrrr.%s'
 
+
+
 def StartRun():
+    rtma_obs = RTMAObservations.RTMAObservations()
+    rtma_obs.DownloadData(datetime.datetime.utcnow())
+    rtma_obs.DownloadData()
+
+
+def StartRunOld():
 
 
     downloader = DataDownloader.DataDownloader()
