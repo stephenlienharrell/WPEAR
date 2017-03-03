@@ -26,7 +26,7 @@ class RTMAObservations(WeatherData.WeatherData):
         self.converted_files = []
         self.visualization_heatmap_files = []
 
-        for x in range(0,23):
+        for x in range(0,24):
             self.files_to_download.append(self.download_file_name.format(gmt_plus=x))
 
             gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=x)
