@@ -31,7 +31,6 @@ class RTMAObservations(WeatherData.WeatherData):
             converted_file = self.local_directory + '/' + self.output_filename_format.format(
                     time=date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(vars),
                     domain=domain)
-            print converted_file
             self.converted_files.append(converted_file)
 
         var_lookup_table = {}
