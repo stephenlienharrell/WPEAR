@@ -3,14 +3,17 @@ import os
 import shutil
 
 import DataDownloader
+import DataConverter
 
 
 class WeatherData(object):
 
 
-    def __init__(self, date, vars, domain):
-        self.temp_directory =  'temp/' + self.tag + '/' + date.strftime('%Y%m%d') 
+    def __init__(self, date, vars, domain, download_directory, web_directory):
+        self.temp_directory =  download_directory + '/' + self.tag + '/' + date.strftime('%Y%m%d') 
         self.date = date
+        self.vars = vars
+        self.domain = domain
 
     def MakeDirs(self, path):
         try:
@@ -31,14 +34,33 @@ class WeatherData(object):
         needed_vars = ['url', 'url_directory', 'files_to_download']
         self.CheckVars('DownloadData', needed_vars)
 
+        print "Starting data downloads"
+
         if not os.path.exists(self.temp_directory):
             os.makedirs(self.temp_directory)
 
         downloader = DataDownloader.DataDownloader()
+
        
         for file_name in self.files_to_download:
+            gmt_plus = file_name.split('.')[1]
+            converted_file = self.local_directory + '/' + self.output_filename_format.format(
+                    time=self.date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(self.vars),
+                    domain=self.domain)
+            if os.path.exists(converted_file):
+                continue
+
             file_directory = self.url_directory + file_name
-            downloader.download(self.url, file_directory, self.temp_directory)
+            try:
+                downloader.download(self.url, file_directory, self.temp_directory)
+            except IOError, e:
+                try:
+                    if e[1] != 404:
+                        raise
+                except:
+                    raise
+                continue
+
             print "Download completed for %s" % file_directory
 
 
@@ -46,32 +68,28 @@ class WeatherData(object):
         needed_vars = ['files_to_download']
         self.CheckVars('ConvertData', needed_vars)
 
+        print "Starting data conversion"
+
         if not os.path.exists(self.local_directory):
             os.makedirs(self.local_directory)
 
         converted_files = []
         for file_name in self.files_to_download:
             temp_file = self.temp_directory + '/' + file_name
-            gmt_plus = file_name.split('.')[1][1:3]
-            ### NEED TO PUT GMT_PLUS AND THE REST OF THE FORMMATING IN HERE:
-            ### rtma_obs_{time}_{vars}_{domain}_2dvaranl_ndfd.grb2'    
-            converted_file = self.local_directory + '/' + self.output_filename_format.format(time=date.strft
+            if not os.path.exists(temp_file):
+                continue
+            gmt_plus = file_name.split('.')[1]
+            converted_file = self.local_directory + '/' + self.output_filename_format.format(
+                    time=self.date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(self.vars),
+                    domain=self.domain)
+            if os.path.exists(converted_file):
+                continue
             DataConverter.convert(temp_file, converted_file)
+            print "Conversion completed for " + temp_file
             converted_files.append(converted_file)
             
         return converted_files    
 
-        #converted_dir = date.strftime(self.local_directory)
-        #self.MakeDirs(converted_dir)
-
-    def CleanupTemp(self):
+    def CleanupDownloads(self):
+        #TODO:  need to cleanup date based parent directories
         shutil.rmtree(self.temp_directory)
-        
-
-
-
-
-
-
-
-

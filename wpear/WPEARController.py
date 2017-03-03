@@ -9,17 +9,24 @@ import RTMAObservations
 import WebsiteGenerator
 
 
-DOWNLOAD_DIRECTORY = 'downloads'
+DOWNLOAD_DIRECTORY = 'temp'
+WEB_DIRECTORY = 'web'
+VARS = ['2MT', 'DPT']
+DOMAIN = 'IND90k'
+
+def StartRun():
+
+    today_rtma_obs = RTMAObservations.RTMAObservations(datetime.datetime.utcnow(),
+            VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY)
+    today_rtma_obs.DownloadData()
+    today_rtma_obs.ConvertData()
+    today_rtma_obs.CleanupDownloads()
+
+
+
 CONVERTED_DIRECTORY = 'converted'
 HRRR_MAIN_URL = 'http://www.ftp.ncep.noaa.gov/'
 HRRR_DIRECTORY = 'data/nccf/com/hrrr/prod/hrrr.%s'
-
-
-
-def StartRun():
-    today_rtma_obs = RTMAObservations.RTMAObservations(datetime.datetime.utcnow())
-    today_rtma_obs.DownloadData()
-
 
 def StartRunOld():
 
