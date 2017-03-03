@@ -42,11 +42,8 @@ class WeatherData(object):
         downloader = DataDownloader.DataDownloader()
 
        
-        for file_name in self.files_to_download:
-            gmt_plus = file_name.split('.')[1]
-            converted_file = self.local_directory + '/' + self.output_filename_format.format(
-                    time=self.date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(self.vars),
-                    domain=self.domain)
+        for index, file_name in enumerate(self.files_to_download):
+            converted_file = self.converted_files[index]
             if os.path.exists(converted_file):
                 continue
 
@@ -74,21 +71,22 @@ class WeatherData(object):
             os.makedirs(self.local_directory)
 
         converted_files = []
-        for file_name in self.files_to_download:
+        for index, file_name in enumerate(self.files_to_download):
             temp_file = self.temp_directory + '/' + file_name
             if not os.path.exists(temp_file):
                 continue
-            gmt_plus = file_name.split('.')[1]
-            converted_file = self.local_directory + '/' + self.output_filename_format.format(
-                    time=self.date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(self.vars),
-                    domain=self.domain)
+            converted_file = self.converted_files[index]
             if os.path.exists(converted_file):
                 continue
             DataConverter.convert(temp_file, converted_file)
             print "Conversion completed for " + temp_file
             converted_files.append(converted_file)
             
-        return converted_files    
+        return converted_files
+
+    def VisualizeData(self):
+        pass
+        
 
     def CleanupDownloads(self):
         #TODO:  need to cleanup date based parent directories

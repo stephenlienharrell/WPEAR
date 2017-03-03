@@ -13,9 +13,9 @@ class RTMAObservations(WeatherData.WeatherData):
         self.download_file_name = 'rtma2p5.t{gmt_plus:02d}z.2dvaranl_ndfd.grb2'
         # use self.file_name.format(gmt_plus='number_of_hours_after gmt')
 
-        self.local_directory = web_directory + date.strftime('/%Y/%m/%d/rtma_obs/')
+        self.local_directory = web_directory + date.strftime('/%Y/%m/%d/rtma_obs')
         # use strftime on datetime here
-        self.local_secondary_directory = web_directory + date.strftime('/rtma_obs/%Y/%m/%d/')
+        self.local_secondary_directory = web_directory + date.strftime('/rtma_obs/%Y/%m/%d')
 
         self.output_filename_format = 'rtma_obs.{time}.{vars}.{domain}.2dvaranl_ndfd.grb2'
         # time here should be in the gmt time zone and be the actual time of gmt_plus with date in the format %Y%m%d-%H
@@ -24,8 +24,15 @@ class RTMAObservations(WeatherData.WeatherData):
         # some how we need to enumerate all the times??
 
         self.files_to_download = []
+        self.converted_files = []
         for x in range(0,23):
             self.files_to_download.append(self.download_file_name.format(gmt_plus=x))
+            gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=x)
+            converted_file = self.local_directory + '/' + self.output_filename_format.format(
+                    time=date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(vars),
+                    domain=domain)
+            print converted_file
+            self.converted_files.append(converted_file)
 
         var_lookup_table = {}
         var_lookup_table['2MTK'] = 3
