@@ -6,15 +6,15 @@ class RTMAObservations(WeatherData.WeatherData):
     def __init__(self, date, vars, domain, download_directory, web_directory):
 
         self.tag = 'rtma_obs'
+
         self.url = 'http://www.ftp.ncep.noaa.gov'
+
         self.url_directory = date.strftime('/data/nccf/com/rtma/prod/rtma2p5.%Y%m%d/')
-        # use self.url_directory.format(date=somedatetime.strftime(self.file_date_format)
 
         self.download_file_name = 'rtma2p5.t{gmt_plus:02d}z.2dvaranl_ndfd.grb2'
-        # use self.file_name.format(gmt_plus='number_of_hours_after gmt')
 
         self.local_directory = web_directory + date.strftime('/%Y/%m/%d/rtma_obs')
-        # use strftime on datetime here
+
         self.local_secondary_directory = web_directory + date.strftime('/rtma_obs/%Y/%m/%d')
 
         self.output_filename_format = 'rtma_obs.{time}.{vars}.{domain}.2dvaranl_ndfd.grb2'
@@ -25,13 +25,16 @@ class RTMAObservations(WeatherData.WeatherData):
         self.files_to_download = []
         self.converted_files = []
         self.visualization_heatmap_files = []
+
         for x in range(0,23):
             self.files_to_download.append(self.download_file_name.format(gmt_plus=x))
+
             gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=x)
             converted_file = self.local_directory + '/' + self.output_filename_format.format(
                     time=date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(vars),
                     domain=domain)
             self.converted_files.append(converted_file)
+
             visualization_heatmap_file = self.local_directory + '/' + self.output_filename_format_heatmap_viz.format(
                     time=date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(vars),
                     domain=domain)
