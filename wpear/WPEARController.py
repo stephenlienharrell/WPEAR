@@ -1,5 +1,6 @@
 import datetime
 
+import HRRRForecasts
 import HRRRObservations
 import RTMAObservations
 
@@ -35,5 +36,16 @@ def StartRun():
         hrrr_obs.ConvertData()
         hrrr_obs.CleanupDownloads()
         hrrr_obs.VisualizeData()
+        
+    del(hrrr_obs)
+
+    for date in hrrr_dates:
+        print 'Starting HRRR Forecasts for ' + date.strftime('%Y%m%d')
+        hrrr_fcast = HRRRForecasts.HRRRForecasts(date,
+                VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY)
+        hrrr_fcast.DownloadData()
+        hrrr_fcast.ConvertData()
+        hrrr_fcast.CleanupDownloads()
+        hrrr_fcast.VisualizeData()
         
     del(hrrr_obs)
