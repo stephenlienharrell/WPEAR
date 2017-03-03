@@ -1,6 +1,6 @@
 import datetime
 
-import DataDownloader
+import HRRRObservations
 import RTMAObservations
 
 DOWNLOAD_DIRECTORY = 'temp'
@@ -12,6 +12,8 @@ def StartRun():
 
     now = datetime.datetime.utcnow()
     one_day_delta = datetime.timedelta(days=1)
+
+
     rtma_dates = [now, now - one_day_delta]
     for date in rtma_dates:
         print 'Starting RTMA Obsevations for ' + date.strftime('%Y%m%d')
@@ -23,3 +25,15 @@ def StartRun():
         rtma_obs.VisualizeData()
         
     del(rtma_obs)
+
+    hrrr_dates = [now, now - one_day_delta]
+    for date in hrrr_dates:
+        print 'Starting HRRR Obsevations for ' + date.strftime('%Y%m%d')
+        hrrr_obs = HRRRObservations.HRRRObservations(date,
+                VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY)
+        hrrr_obs.DownloadData()
+        hrrr_obs.ConvertData()
+        hrrr_obs.CleanupDownloads()
+        hrrr_obs.VisualizeData()
+        
+    del(hrrr_obs)
