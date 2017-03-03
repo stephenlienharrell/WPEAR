@@ -2,8 +2,11 @@ import errno
 import os
 import shutil
 
+import pygrib
+
 import DataDownloader
 import DataConverter
+import DataVisualizer
 
 
 class WeatherData(object):
@@ -85,8 +88,20 @@ class WeatherData(object):
         return converted_files
 
     def VisualizeData(self):
-        pass
-        
+        print "Starting data visualization"
+        visualizer = DataVisualizer.DataVisualizer(None)
+        for index, file_name in enumerate(self.converted_files):
+            if not os.path.exists(file_name):
+                continue
+
+            if os.path.exists(self.visualization_heatmap_files[index]):
+                continue
+
+            grib_loaded = pygrib.open(file_name)
+            #for var in self.vars:
+            grib_msg = grib_loaded.select(name='2 metre temperature')[0]
+            visualizer.Heatmap(grib_msg, self.visualization_heatmap_files[index])
+            print "Visualizing " + self.visualization_heatmap_files[index] + " is complete"
 
     def CleanupDownloads(self):
         #TODO:  need to cleanup date based parent directories

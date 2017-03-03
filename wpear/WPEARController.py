@@ -20,5 +20,6 @@ def StartRun():
         rtma_obs.DownloadData()
         rtma_obs.ConvertData()
         rtma_obs.CleanupDownloads()
+        rtma_obs.VisualizeData()
         
     del(rtma_obs)

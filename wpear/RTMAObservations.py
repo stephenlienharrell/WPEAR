@@ -18,13 +18,13 @@ class RTMAObservations(WeatherData.WeatherData):
         self.local_secondary_directory = web_directory + date.strftime('/rtma_obs/%Y/%m/%d')
 
         self.output_filename_format = 'rtma_obs.{time}.{vars}.{domain}.2dvaranl_ndfd.grb2'
-        # time here should be in the gmt time zone and be the actual time of gmt_plus with date in the format %Y%m%d-%H
 
-        self.files_per_day = 'rtma_obs_{time}_{vars}_{domain}_2dvaranl_ndfd.grb2'
-        # some how we need to enumerate all the times??
+        self.output_filename_format_heatmap_viz = 'rtma_obs.{time}.{vars}.{domain}.2dvaranl_ndfd.heatmap.png'
+
 
         self.files_to_download = []
         self.converted_files = []
+        self.visualization_heatmap_files = []
         for x in range(0,23):
             self.files_to_download.append(self.download_file_name.format(gmt_plus=x))
             gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=x)
@@ -32,6 +32,10 @@ class RTMAObservations(WeatherData.WeatherData):
                     time=date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(vars),
                     domain=domain)
             self.converted_files.append(converted_file)
+            visualization_heatmap_file = self.local_directory + '/' + self.output_filename_format_heatmap_viz.format(
+                    time=date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(vars),
+                    domain=domain)
+            self.visualization_heatmap_files.append(visualization_heatmap_file)
 
         var_lookup_table = {}
         var_lookup_table['2MTK'] = 3
