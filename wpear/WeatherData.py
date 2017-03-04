@@ -34,7 +34,7 @@ class WeatherData(object):
                         (var, function))
 
     def DownloadData(self):
-        needed_vars = ['url', 'url_directory', 'files_to_download']
+        needed_vars = ['url', 'url_directory', 'files_to_download', 'converted_files']
         self.CheckVars('DownloadData', needed_vars)
 
         print "Starting data downloads"
@@ -65,7 +65,7 @@ class WeatherData(object):
 
 
     def ConvertData(self):
-        needed_vars = ['files_to_download']
+        needed_vars = ['files_to_download', 'local_directory', 'converted_files']
         self.CheckVars('ConvertData', needed_vars)
 
         print "Starting data conversion"
@@ -88,6 +88,8 @@ class WeatherData(object):
         return converted_files
 
     def VisualizeData(self):
+        needed_vars = ['vars', 'visualization_heatmap_files', 'converted_files']
+        self.CheckVars('VisualizeData', needed_vars)
         print "Starting data visualization"
         visualizer = DataVisualizer.DataVisualizer(None)
         for index, file_name in enumerate(self.converted_files):
@@ -106,3 +108,7 @@ class WeatherData(object):
     def CleanupDownloads(self):
         #TODO:  need to cleanup date based parent directories
         shutil.rmtree(self.temp_directory)
+
+    def VisualizeDifference(self, forecast):
+        if not self.obs:
+            raise ValueError('Must call VisualDifference on observations only')
