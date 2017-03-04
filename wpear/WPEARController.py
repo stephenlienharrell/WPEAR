@@ -17,7 +17,7 @@ def StartRun():
 
     rtma_dates = [now, now - one_day_delta]
     for date in rtma_dates:
-        print 'Starting RTMA Obsevations for ' + date.strftime('%Y%m%d')
+        print 'Starting RTMA Observations for ' + date.strftime('%Y%m%d')
         rtma_obs = RTMAObservations.RTMAObservations(date,
                 VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY)
         rtma_obs.DownloadData()
@@ -29,7 +29,7 @@ def StartRun():
 
     hrrr_dates = [now, now - one_day_delta]
     for date in hrrr_dates:
-        print 'Starting HRRR Obsevations for ' + date.strftime('%Y%m%d')
+        print 'Starting HRRR Observations for ' + date.strftime('%Y%m%d')
         hrrr_obs = HRRRObservations.HRRRObservations(date,
                 VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY)
         hrrr_obs.DownloadData()
