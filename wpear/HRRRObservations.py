@@ -5,6 +5,8 @@ class HRRRObservations(WeatherData.WeatherData):
    
     def __init__(self, date, vars, domain, download_directory, web_directory):
 
+        self.obs = True
+
         self.tag = 'hrrr_obs'
 
         self.url = 'http://www.ftp.ncep.noaa.gov'
