@@ -48,4 +48,4 @@ def StartRun():
         hrrr_fcast.CleanupDownloads()
         hrrr_fcast.VisualizeData()
         
-    del(hrrr_obs)
+    del(hrrr_fcast)
