@@ -93,6 +93,8 @@ class DataVisualizer():
         m.readshapefile(self.shapeFile,'areas')
         plt.title(data_type)
         plt.savefig(file_name)
+        plt.close(fig)
+
 
 
 
