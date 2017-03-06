@@ -24,24 +24,9 @@ class WeatherData(object):
         self.threads = []
         self.thread_count = 0
 
-    def MakeDirs(self, path):
-        try:
-            os.makedirs(path)
-        except OSError as exception:
-            if exception.errno == errno.EEXIST and os.path.isdir(path):
-                pass
-            else:
-                raise
-
-    def CheckVars(self, function, vars):
-        for var in vars:
-            if not hasattr(self, var):
-                raise AttributeError('Variable self.%s not found and is needed in the %s function' % 
-                        (var, function))
-
     def DownloadData(self):
         needed_vars = ['url', 'url_directory', 'files_to_download', 'converted_files']
-        self.CheckVars('DownloadData', needed_vars)
+        self._CheckVars('DownloadData', needed_vars)
 
         print "Starting data downloads"
 
@@ -65,7 +50,7 @@ class WeatherData(object):
 
     def ConvertData(self):
         needed_vars = ['files_to_download', 'local_directory', 'converted_files']
-        self.CheckVars('ConvertData', needed_vars)
+        self._CheckVars('ConvertData', needed_vars)
 
         print "Starting data conversion"
 
@@ -87,7 +72,7 @@ class WeatherData(object):
             
     def VisualizeData(self):
         needed_vars = ['vars', 'visualization_heatmap_files', 'converted_files']
-        self.CheckVars('VisualizeData', needed_vars)
+        self._CheckVars('VisualizeData', needed_vars)
         print "Starting data visualization"
         for index, file_name in enumerate(self.converted_files):
             if not os.path.exists(file_name):
@@ -112,6 +97,13 @@ class WeatherData(object):
             raise ValueError('Must call VisualDifference on observations only')
         for converted_file in self.converted_files:
             date = self._GetTimeOfObs(converted_file)
+
+    def _CheckVars(self, function, vars):
+        for var in vars:
+            if not hasattr(self, var):
+                raise AttributeError('Variable self.%s not found and is needed in the %s function' % 
+                        (var, function))
+
 
     def _addToThreadPool(self, function, args):
         proc = multiprocessing.Process(target=function, args=args)
