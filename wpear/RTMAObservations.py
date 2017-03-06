@@ -1,3 +1,5 @@
+import datetime
+
 import WeatherData
 
 
@@ -42,10 +44,19 @@ class RTMAObservations(WeatherData.WeatherData):
                     domain=domain)
             self.visualization_heatmap_files.append(visualization_heatmap_file)
 
-        var_lookup_table = {}
-        var_lookup_table['2MTK'] = 3
-        var_lookup_table['DPT'] = 4
+        self.var_lookup_table = {}
+        self.var_lookup_table['2MTK'] = 3
+        self.var_lookup_table['DPT'] = 4
+
+
 
         super(RTMAObservations, self).__init__(date, vars, domain, download_directory, web_directory)
 
+    # OBS Specific
+    def _GetTimeOfObs(self, file_name):
+        time_text = file_name.split('.')[1]
+        time_format = '%Y%m%d_t%Hz'
+        date = datetime.datetime.strptime(time_text, time_format)
+        # What to do about timezones?
+        return date
 
