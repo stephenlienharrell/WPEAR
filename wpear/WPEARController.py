@@ -25,7 +25,6 @@ def StartRun():
         rtma_obs.CleanupDownloads()
         rtma_obs.VisualizeData()
         
-    del(rtma_obs)
 
     hrrr_dates = [now, now - one_day_delta]
     for date in hrrr_dates:
@@ -37,7 +36,6 @@ def StartRun():
         hrrr_obs.CleanupDownloads()
         hrrr_obs.VisualizeData()
         
-    del(hrrr_obs)
 
     for date in hrrr_dates:
         print 'Starting HRRR Forecasts for ' + date.strftime('%Y%m%d')
@@ -47,5 +45,7 @@ def StartRun():
         hrrr_fcast.ConvertData()
         hrrr_fcast.CleanupDownloads()
         hrrr_fcast.VisualizeData()
-        
-    del(hrrr_fcast)
+
+
+    hrrr_obs.VisualizeDifference(hrrr_fcast)
+

@@ -1,3 +1,5 @@
+import datetime
+
 import WeatherData
 
 
@@ -47,5 +49,13 @@ class HRRRObservations(WeatherData.WeatherData):
         var_lookup_table['DPT'] = 57
 
         super(HRRRObservations, self).__init__(date, vars, domain, download_directory, web_directory)
+
+    # OBS Specific
+    def _GetTimeOfObs(self, file_name):
+        time_text = file_name.split('.')[1]
+        time_format = '%Y%m%d_t%Hz'
+        date = datetime.datetime.strptime(time_text, time_format)
+        # What to do about timezones?
+        return date
 
 

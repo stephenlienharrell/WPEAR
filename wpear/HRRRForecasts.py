@@ -44,9 +44,13 @@ class HRRRForecasts(WeatherData.WeatherData):
                     domain=domain, forecast_number=j)
                 self.visualization_heatmap_files.append(visualization_heatmap_file)
 
-        var_lookup_table = {}
-        var_lookup_table['2MTK'] = 54
-        var_lookup_table['DPT'] = 57
+        self.var_lookup_table = {}
+        self.var_lookup_table['2MTK'] = 54
+        self.var_lookup_table['DPT'] = 57
+
+        #justforecastthings
+        self.max_fcast = 18
+        self.hours_between_fcasts = 1
 
         super(HRRRForecasts, self).__init__(date, vars, domain, download_directory, web_directory)
 

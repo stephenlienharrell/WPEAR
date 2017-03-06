@@ -1,3 +1,4 @@
+import datetime
 import errno
 import multiprocessing
 import os
@@ -16,11 +17,13 @@ class WeatherData(object):
 
 
     def __init__(self, date, vars, domain, download_directory, web_directory):
-        self.temp_directory =  download_directory + '/' + self.tag + '/' + date.strftime('%Y%m%d') 
         self.date = date
         self.vars = vars
         self.domain = domain
         
+        self.temp_directory =  download_directory + '/' + self.tag + '/' + date.strftime('%Y%m%d') 
+        self.compared_viz_file_format = '{obs_tag}.{obs_date}.{obs_extra_info}_{fcast_tag}.{fcast_date}.{fcast_extra_info}{fcast_number}_{var}.{domain}.png'
+
         self.threads = []
         self.thread_count = 0
 
@@ -88,15 +91,43 @@ class WeatherData(object):
         self._waitForThreadPool(thread_max=0)
 
 
-    def CleanupDownloads(self):
-        #TODO:  need to cleanup date based parent directories
-        shutil.rmtree(self.temp_directory)
-
     def VisualizeDifference(self, forecast):
         if not self.obs:
             raise ValueError('Must call VisualDifference on observations only')
-        for converted_file in self.converted_files:
-            date = self._GetTimeOfObs(converted_file)
+        for obs_file in self.converted_files:
+            obs_date = self._GetTimeOfObs(obs_file)
+
+            if not os.path.exists(obs_file):
+                continue
+
+            for x in range(1, forecast.max_fcast + 1, forecast.hours_between_fcasts):
+                fcast_date = obs_date - datetime.timedelta(hours=x)
+                gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
+                fcast_file = forecast.local_directory + '/' + forecast.output_filename_format.format(
+                        time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
+                        domain=forecast.domain, forecast_number=x)
+                print obs_file + ' ' + fcast_file
+
+                if not os.path.exists(fcast_file):
+                    continue
+
+                ### EDIT FROM HERE
+                ### ALSO INSERT "EXTRA_INFO" INTO ALL THE FCAST AND OBS
+                ## self.compared_viz_file_format = '{obs_tag}.{obs_date}.{obs_extra_info}_{fcast_tag}.{fcast_date}.{fcast_extra_info}{fcast_number}_{var}.{domain}.png'
+                out_file = self.compared_viz_file_format.format()
+
+                if os.path.exists(out_file):
+                    continue
+
+                self._addToThreadPool(_doCompareVisualization, (obs_file, fcast_file, out_file))
+                self._waitForThreadPool()
+
+        self._waitForThreadPool(thread_max=0)
+
+
+    def CleanupDownloads(self):
+        #TODO:  need to cleanup date based parent directories
+        shutil.rmtree(self.temp_directory)
 
     def _CheckVars(self, function, vars):
         for var in vars:
@@ -149,3 +180,9 @@ def _doVisualization(file_name, out_file):
     grib_msg = grib_loaded.select(name='2 metre temperature')[0]
     visualizer.Heatmap(grib_msg, out_file)
     print "Visualizing " + out_file + " is complete"
+
+def _doCompareVisualization(obs_file, fcast_file, out_file):
+    grib_msg = DataComparator.DataComparator(obs_file, fcast_file)
+    visualizer.Heatmap(grib_msg, out_file)
+    print "Visualizing " + out_file + " is complete"
+
