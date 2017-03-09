@@ -54,6 +54,9 @@ class HRRRSurfaceForecasts(WeatherData.WeatherData):
         self.var_lookup_table['2MTK'] = 54
         self.var_lookup_table['DPT'] = 57
 
+        if testing:
+            self.files_to_download[self.download_file_name.format(gmt_plus=1, forecast_number=5)]
+
         #justforecastthings
         self.max_fcast = 18
         self.hours_between_fcasts = 1

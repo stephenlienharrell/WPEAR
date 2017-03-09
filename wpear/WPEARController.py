@@ -9,10 +9,30 @@ WEB_DIRECTORY = 'web'
 VARS = ['2MT', 'DPT']
 DOMAIN = 'IND90k'
 
+TESTING = True
+
 def StartRun():
 
     now = datetime.datetime.utcnow()
     one_day_delta = datetime.timedelta(days=1)
+
+    if TESTING:
+        hrrr_fcast = HRRRSurfaceForecasts.HRRRSurfaceForecasts(now - one_day_delta,
+                VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY, testing=True)
+        hrrr_fcast.DownloadData()
+        hrrr_fcast.ConvertData()
+        hrrr_fcast.CleanupDownloads()
+        hrrr_fcast.VisualizeData()
+        
+        hrrr_obs = HRRRSurfaceObservations.HRRRSurfaceObservations(now - one_day_delta,
+                VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY, testing=True)
+        hrrr_obs.DownloadData()
+        hrrr_obs.ConvertData()
+        hrrr_obs.CleanupDownloads()
+        hrrr_obs.VisualizeData()
+        hrrr_obs.VisualizeDifference(hrrr_fcast, 'DIF')
+
+        return
 
 
     rtma_dates = [now, now - one_day_delta]

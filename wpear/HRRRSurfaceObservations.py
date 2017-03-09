@@ -5,7 +5,7 @@ import WeatherData
 
 class HRRRSurfaceObservations(WeatherData.WeatherData):
    
-    def __init__(self, date, vars, domain, download_directory, web_directory):
+    def __init__(self, date, vars, domain, download_directory, web_directory, testing=False):
 
         self.obs = True
 
@@ -34,6 +34,7 @@ class HRRRSurfaceObservations(WeatherData.WeatherData):
         self.converted_files = []
         self.visualization_heatmap_files = []
 
+
         for x in range(0,24):
             self.files_to_download.append(self.download_file_name.format(gmt_plus=x))
 
@@ -51,6 +52,10 @@ class HRRRSurfaceObservations(WeatherData.WeatherData):
         var_lookup_table = {}
         var_lookup_table['2MTK'] = 54
         var_lookup_table['DPT'] = 57
+
+        if testing:
+            self.files_to_download = [self.download_file_name.format(gmt_plus=6)]
+
 
         super(HRRRSurfaceObservations, self).__init__(date, vars, domain, download_directory, web_directory)
 
