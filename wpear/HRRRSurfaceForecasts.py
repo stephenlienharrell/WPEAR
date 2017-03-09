@@ -3,7 +3,7 @@ import WeatherData
 
 class HRRRSurfaceForecasts(WeatherData.WeatherData):
    
-    def __init__(self, date, vars, domain, download_directory, web_directory):
+    def __init__(self, date, vars, domain, download_directory, web_directory, testing=False):
 
         self.obs = False
 
@@ -54,8 +54,10 @@ class HRRRSurfaceForecasts(WeatherData.WeatherData):
         self.var_lookup_table['2MTK'] = 54
         self.var_lookup_table['DPT'] = 57
 
+        print self.converted_files
+
         if testing:
-            self.files_to_download[self.download_file_name.format(gmt_plus=1, forecast_number=5)]
+            self.files_to_download = [self.download_file_name.format(gmt_plus=0, forecast_number=6)]
 
         #justforecastthings
         self.max_fcast = 18
