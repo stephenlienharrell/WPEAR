@@ -49,5 +49,5 @@ def StartRun():
     hrrr_fcast = HRRRSurfaceForecasts.HRRRSurfaceForecasts(now,
            VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY)
 
-    hrrr_obs.VisualizeDifference(hrrr_fcast)
+    hrrr_obs.VisualizeDifference(hrrr_fcast, 'DIF')
 

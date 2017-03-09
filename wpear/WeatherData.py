@@ -21,9 +21,11 @@ class WeatherData(object):
         self.date = date
         self.vars = vars
         self.domain = domain
+        self.web_directory = web_directory
         
         self.temp_directory =  download_directory + '/' + self.tag + '/' + date.strftime('%Y%m%d') 
-        self.compared_viz_file_format = '{obs_tag}.{obs_date}.{obs_extra_info}_{fcast_tag}.{fcast_date}.{fcast_extra_info}f{fcast_number}_{var}.{domain}.png'
+        self.compared_viz_file_format = '{obs_tag}.{obs_date}.{obs_extra_info}_{fcast_tag}.{fcast_date}.{fcast_extra_info}f{fcast_number}_{var}.{domain}.{comp_tag}.png'
+        self.compared_viz_directory = web_directory + '/%Y/%m/%d/{obs_tag}.{fcast_tag}.{comp_tag}'
 
         self.threads = []
         self.thread_count = 0
@@ -92,39 +94,40 @@ class WeatherData(object):
         self._waitForThreadPool(thread_max=0)
 
 
-    def VisualizeDifference(self, forecast):
+    def VisualizeDifference(self, forecast, comparator_tag):
         if not self.obs:
             raise ValueError('Must call VisualDifference on observations only')
         for obs_file in self.converted_files:
             obs_date = self._GetTimeOfObs(obs_file)
+
+            out_dir = obs_date.strftime(self.compared_viz_directory)
+            out_dir = out_dir.format(obs_tag=self.tag, fcast_tag=forecast.tag, comp_tag=comparator_tag)
+            if not os.path.exists(out_dir):
+                os.makedirs(out_dir)
 
             if not os.path.exists(obs_file):
                 continue
 
             for x in range(1, forecast.max_fcast + 1, forecast.hours_between_fcasts):
                 fcast_date = obs_date - datetime.timedelta(hours=x)
-                forecast.date = fcast_date
 
                 gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
-                fcast_file = forecast.local_directory + '/' + forecast.output_filename_format.format(
+                fcast_file =  (self.web_directory + fcast_date.strftime(forecast.local_directory_date_format) + 
+                        '/' + forecast.output_filename_format.format(
                         time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
-                        domain=forecast.domain, forecast_number=x, extra_info=forecast.extra_info)
-                print fcast_file
+                        domain=forecast.domain, forecast_number=x, extra_info=forecast.extra_info))
 
                 if not os.path.exists(fcast_file):
                     continue
 
-                ### EDIT FROM HERE
-                ### ALSO INSERT "EXTRA_INFO" INTO ALL THE FCAST AND OBS
-                ## self.compared_viz_file_format = '{obs_tag}.{obs_date}.{obs_extra_info}_{fcast_tag}.{fcast_date}.{fcast_extra_info}{fcast_number}_{var}.{domain}.png'
-
                 ## TODO FIX VAR EVERYWHERE INCLUDING HERE
-                out_file = self.compared_viz_file_format.format(obs_tag=self.tag, obs_date=obs_date.strftime(self.date_format) + obs_date.strftime('_t%Hz'), 
-                        obs_extra_info=self.extra_info, fcast_tag=forecast.tag, fcast_date=fcast_date.strftime(self.date_format) + fcast_date.strftime('_t%Hz'),
-                        fcast_number=x, fcast_extra_info=forecast.extra_info, var='2MTK', domain=self.domain)
+                out_file = out_dir + '/' + self.compared_viz_file_format.format(
+                        obs_tag=self.tag, obs_date=obs_date.strftime(self.date_format) + obs_date.strftime('_t%Hz'), 
+                        obs_extra_info=self.extra_info, fcast_tag=forecast.tag, 
+                        fcast_date=fcast_date.strftime(self.date_format) + fcast_date.strftime('_t%Hz'),
+                        fcast_number=x, fcast_extra_info=forecast.extra_info, var='2MTK', domain=self.domain,
+                        comp_tag=comparator_tag)
 
-                print out_file
-                continue
 
                 if os.path.exists(out_file):
                     continue

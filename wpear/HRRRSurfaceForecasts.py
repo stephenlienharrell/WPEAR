@@ -18,7 +18,9 @@ class HRRRSurfaceForecasts(WeatherData.WeatherData):
 
         self.download_file_name = 'hrrr.t{gmt_plus:02d}z.wrfsfcf{forecast_number:02d}.grib2'
 
-        self.local_directory = web_directory + date.strftime('/%Y/%m/%d/hrrr_fcast')
+        self.local_directory_date_format = '/%Y/%m/%d/hrrr_fcast'
+
+        self.local_directory = web_directory + date.strftime(self.local_directory_date_format)
 
         self.local_secondary_directory = web_directory + date.strftime('/hrrr_fcast/%Y/%m/%d')
 
@@ -27,7 +29,6 @@ class HRRRSurfaceForecasts(WeatherData.WeatherData):
         self.output_filename_format_heatmap_viz = 'hrrr_fcast.{time}.{vars}.{domain}.{extra_info}f{forecast_number:02d}.heatmap.png'
 
         self.date_format = '%Y%m%d'
-
 
         self.files_to_download = []
         self.converted_files = []
@@ -58,5 +59,3 @@ class HRRRSurfaceForecasts(WeatherData.WeatherData):
         self.hours_between_fcasts = 1
 
         super(HRRRSurfaceForecasts, self).__init__(date, vars, domain, download_directory, web_directory)
-
-
