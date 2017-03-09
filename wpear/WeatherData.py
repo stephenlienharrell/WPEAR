@@ -8,6 +8,7 @@ import time
 import pygrib
 
 import DataDownloader
+import DataComparator
 import DataConverter
 import DataVisualizer
 
@@ -22,7 +23,7 @@ class WeatherData(object):
         self.domain = domain
         
         self.temp_directory =  download_directory + '/' + self.tag + '/' + date.strftime('%Y%m%d') 
-        self.compared_viz_file_format = '{obs_tag}.{obs_date}.{obs_extra_info}_{fcast_tag}.{fcast_date}.{fcast_extra_info}{fcast_number}_{var}.{domain}.png'
+        self.compared_viz_file_format = '{obs_tag}.{obs_date}.{obs_extra_info}_{fcast_tag}.{fcast_date}.{fcast_extra_info}f{fcast_number}_{var}.{domain}.png'
 
         self.threads = []
         self.thread_count = 0
@@ -102,11 +103,13 @@ class WeatherData(object):
 
             for x in range(1, forecast.max_fcast + 1, forecast.hours_between_fcasts):
                 fcast_date = obs_date - datetime.timedelta(hours=x)
+                forecast.date = fcast_date
+
                 gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
                 fcast_file = forecast.local_directory + '/' + forecast.output_filename_format.format(
                         time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
-                        domain=forecast.domain, forecast_number=x)
-                print obs_file + ' ' + fcast_file
+                        domain=forecast.domain, forecast_number=x, extra_info=forecast.extra_info)
+                print fcast_file
 
                 if not os.path.exists(fcast_file):
                     continue
@@ -114,7 +117,14 @@ class WeatherData(object):
                 ### EDIT FROM HERE
                 ### ALSO INSERT "EXTRA_INFO" INTO ALL THE FCAST AND OBS
                 ## self.compared_viz_file_format = '{obs_tag}.{obs_date}.{obs_extra_info}_{fcast_tag}.{fcast_date}.{fcast_extra_info}{fcast_number}_{var}.{domain}.png'
-                out_file = self.compared_viz_file_format.format()
+
+                ## TODO FIX VAR EVERYWHERE INCLUDING HERE
+                out_file = self.compared_viz_file_format.format(obs_tag=self.tag, obs_date=obs_date.strftime(self.date_format) + obs_date.strftime('_t%Hz'), 
+                        obs_extra_info=self.extra_info, fcast_tag=forecast.tag, fcast_date=fcast_date.strftime(self.date_format) + fcast_date.strftime('_t%Hz'),
+                        fcast_number=x, fcast_extra_info=forecast.extra_info, var='2MTK', domain=self.domain)
+
+                print out_file
+                continue
 
                 if os.path.exists(out_file):
                     continue
@@ -182,6 +192,7 @@ def _doVisualization(file_name, out_file):
     print "Visualizing " + out_file + " is complete"
 
 def _doCompareVisualization(obs_file, fcast_file, out_file):
+    visualizer = DataVisualizer.DataVisualizer(None)
     grib_msg = DataComparator.DataComparator(obs_file, fcast_file)
     visualizer.Heatmap(grib_msg, out_file)
     print "Visualizing " + out_file + " is complete"
