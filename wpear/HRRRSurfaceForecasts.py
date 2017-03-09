@@ -1,13 +1,16 @@
 import WeatherData
 
 
-class HRRRForecasts(WeatherData.WeatherData):
+class HRRRSurfaceForecasts(WeatherData.WeatherData):
    
     def __init__(self, date, vars, domain, download_directory, web_directory):
 
         self.obs = False
 
         self.tag = 'hrrr_fcast'
+
+        # WRF surface
+        self.extra_info = 'wrfsfc' 
 
         self.url = 'http://www.ftp.ncep.noaa.gov'
 
@@ -19,9 +22,11 @@ class HRRRForecasts(WeatherData.WeatherData):
 
         self.local_secondary_directory = web_directory + date.strftime('/hrrr_fcast/%Y/%m/%d')
 
-        self.output_filename_format = 'hrrr_fcast.{time}.{vars}.{domain}.wrfsfcf{forecast_number:02d}.grb2'
+        self.output_filename_format = 'hrrr_fcast.{time}.{vars}.{domain}.{extra_info}f{forecast_number:02d}.grb2'
 
-        self.output_filename_format_heatmap_viz = 'hrrr_fcast.{time}.{vars}.{domain}.wrfsfcf{forecast_number:02d}.heatmap.png'
+        self.output_filename_format_heatmap_viz = 'hrrr_fcast.{time}.{vars}.{domain}.{extra_info}f{forecast_number:02d}.heatmap.png'
+
+        self.date_format = '%Y%m%d'
 
 
         self.files_to_download = []
@@ -35,13 +40,13 @@ class HRRRForecasts(WeatherData.WeatherData):
 
                 gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=i)
                 converted_file = self.local_directory + '/' + self.output_filename_format.format(
-                    time=date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(vars),
-                    domain=domain, forecast_number=j)
+                    time=date.strftime(self.date_format) + '_' + gmt_plus, vars='_'.join(vars),
+                    domain=domain, forecast_number=j, extra_info=self.extra_info)
                 self.converted_files.append(converted_file)
 
                 visualization_heatmap_file = self.local_directory + '/' + self.output_filename_format_heatmap_viz.format(
-                    time=date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(vars),
-                    domain=domain, forecast_number=j)
+                    time=date.strftime(self.date_format) + '_' + gmt_plus, vars='_'.join(vars),
+                    domain=domain, forecast_number=j, extra_info=self.extra_info)
                 self.visualization_heatmap_files.append(visualization_heatmap_file)
 
         self.var_lookup_table = {}
@@ -52,6 +57,6 @@ class HRRRForecasts(WeatherData.WeatherData):
         self.max_fcast = 18
         self.hours_between_fcasts = 1
 
-        super(HRRRForecasts, self).__init__(date, vars, domain, download_directory, web_directory)
+        super(HRRRSurfaceForecasts, self).__init__(date, vars, domain, download_directory, web_directory)
 
 
