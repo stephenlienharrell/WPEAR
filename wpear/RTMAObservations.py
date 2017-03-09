@@ -11,6 +11,9 @@ class RTMAObservations(WeatherData.WeatherData):
 
         self.tag = 'rtma_obs'
 
+        #  (2-D variational), anl is short for "analysis", ndfd is National Digital Forecast Database
+        self.extra_info = '2dvaranl_ndfd'
+
         self.url = 'http://www.ftp.ncep.noaa.gov'
 
         self.url_directory = date.strftime('/data/nccf/com/rtma/prod/rtma2p5.%Y%m%d/')
@@ -47,9 +50,6 @@ class RTMAObservations(WeatherData.WeatherData):
         self.var_lookup_table = {}
         self.var_lookup_table['2MTK'] = 3
         self.var_lookup_table['DPT'] = 4
-
-
-
         super(RTMAObservations, self).__init__(date, vars, domain, download_directory, web_directory)
 
     # OBS Specific
