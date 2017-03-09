@@ -95,6 +95,12 @@ class WeatherData(object):
 
 
     def VisualizeDifference(self, forecast, comparator_tag):
+        print "Starting Data Comparison"
+        needed_vars = ['vars', 'converted_files', 'compared_viz_directory', 'tag', 'web_directory', 
+                'compared_viz_file_format', 'date_format', 'domain', 'extra_info']
+        self._CheckVars('VisualizeDifference', needed_vars)
+        fcast_needed_vars = ['tag', 'max_fcast', 'vars', 'domain', 'output_filename_format', 'extra_info']
+        forecast._CheckVars('VisualizeDifference', fcast_needed_vars)
         if not self.obs:
             raise ValueError('Must call VisualDifference on observations only')
         for obs_file in self.converted_files:
