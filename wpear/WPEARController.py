@@ -25,18 +25,7 @@ def StartRun():
         rtma_obs.CleanupDownloads()
         rtma_obs.VisualizeData()
         
-
     hrrr_dates = [now, now - one_day_delta]
-    for date in hrrr_dates:
-        print 'Starting HRRR Observations for ' + date.strftime('%Y%m%d')
-        hrrr_obs = HRRRSurfaceObservations.HRRRSurfaceObservations(date,
-                VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY)
-        hrrr_obs.DownloadData()
-        hrrr_obs.ConvertData()
-        hrrr_obs.CleanupDownloads()
-        hrrr_obs.VisualizeData()
-        
-
     for date in hrrr_dates:
         print 'Starting HRRR Forecasts for ' + date.strftime('%Y%m%d')
         hrrr_fcast = HRRRSurfaceForecasts.HRRRSurfaceForecasts(date,
@@ -46,8 +35,13 @@ def StartRun():
         hrrr_fcast.CleanupDownloads()
         hrrr_fcast.VisualizeData()
 
-    hrrr_fcast = HRRRSurfaceForecasts.HRRRSurfaceForecasts(now,
-           VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY)
-
-    hrrr_obs.VisualizeDifference(hrrr_fcast, 'DIF')
+    for date in hrrr_dates:
+        print 'Starting HRRR Observations for ' + date.strftime('%Y%m%d')
+        hrrr_obs = HRRRSurfaceObservations.HRRRSurfaceObservations(date,
+                VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY)
+        hrrr_obs.DownloadData()
+        hrrr_obs.ConvertData()
+        hrrr_obs.CleanupDownloads()
+        hrrr_obs.VisualizeData()
+        hrrr_obs.VisualizeDifference(hrrr_fcast, 'DIF')
 
