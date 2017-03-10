@@ -3,6 +3,8 @@
 import pygrib
 import random
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 from mpl_toolkits.mplot3d import Axes3D
@@ -91,6 +93,8 @@ class DataVisualizer():
         m.readshapefile(self.shapeFile,'areas')
         plt.title(data_type)
         plt.savefig(file_name)
+        plt.close(fig)
+
 
 
 
