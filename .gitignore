@@ -106,3 +106,6 @@ Session.vim
 *~
 # auto-generated tag files
 tags
+
+# Mac stuff
+.DS_Store

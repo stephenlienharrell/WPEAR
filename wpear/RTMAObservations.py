@@ -1,0 +1,62 @@
+import datetime
+
+import WeatherData
+
+
+class RTMAObservations(WeatherData.WeatherData):
+   
+    def __init__(self, date, vars, domain, download_directory, web_directory):
+
+        self.obs = True
+
+        self.tag = 'rtma_obs'
+
+        #  (2-D variational), anl is short for "analysis", ndfd is National Digital Forecast Database
+        self.extra_info = '2dvaranl_ndfd'
+
+        self.url = 'http://www.ftp.ncep.noaa.gov'
+
+        self.url_directory = date.strftime('/data/nccf/com/rtma/prod/rtma2p5.%Y%m%d/')
+
+        self.download_file_name = 'rtma2p5.t{gmt_plus:02d}z.2dvaranl_ndfd.grb2'
+
+        self.local_directory = web_directory + date.strftime('/%Y/%m/%d/rtma_obs')
+
+        self.local_secondary_directory = web_directory + date.strftime('/rtma_obs/%Y/%m/%d')
+
+        self.output_filename_format = 'rtma_obs.{time}.{vars}.{domain}.2dvaranl_ndfd.grb2'
+
+        self.output_filename_format_heatmap_viz = 'rtma_obs.{time}.{vars}.{domain}.2dvaranl_ndfd.heatmap.png'
+
+
+        self.files_to_download = []
+        self.converted_files = []
+        self.visualization_heatmap_files = []
+
+        for x in range(0,24):
+            self.files_to_download.append(self.download_file_name.format(gmt_plus=x))
+
+            gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=x)
+            converted_file = self.local_directory + '/' + self.output_filename_format.format(
+                    time=date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(vars),
+                    domain=domain)
+            self.converted_files.append(converted_file)
+
+            visualization_heatmap_file = self.local_directory + '/' + self.output_filename_format_heatmap_viz.format(
+                    time=date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(vars),
+                    domain=domain)
+            self.visualization_heatmap_files.append(visualization_heatmap_file)
+
+        self.var_lookup_table = {}
+        self.var_lookup_table['2MTK'] = 3
+        self.var_lookup_table['DPT'] = 4
+        super(RTMAObservations, self).__init__(date, vars, domain, download_directory, web_directory)
+
+    # OBS Specific
+    def _GetTimeOfObs(self, file_name):
+        time_text = file_name.split('.')[1]
+        time_format = '%Y%m%d_t%Hz'
+        date = datetime.datetime.strptime(time_text, time_format)
+        # What to do about timezones?
+        return date
+

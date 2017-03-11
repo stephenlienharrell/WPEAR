@@ -21,9 +21,9 @@ def DataComparator(forecast_file, observed_file):
 	gobj = ret_file.select(name='2 metre temperature')[0]
 	gobj.values=numpy.array(arr)
 	
-	print gobj.values
+	#print gobj.values
 
 	# return grib message
 	return gobj
 
-DataComparator('hrrr.t15z.wrfsubhf01.grib2', 'hrrr.t15z.wrfsubhf01.grib2')
+#DataComparator('hrrr.t15z.wrfsubhf01.grib2', 'hrrr.t15z.wrfsubhf01.grib2')
