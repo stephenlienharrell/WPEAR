@@ -54,8 +54,8 @@ class HRRRSurfaceObservations(WeatherData.WeatherData):
         var_lookup_table['DPT'] = 57
 
         if testing:
-            self.files_to_download = [self.download_file_name.format(gmt_plus=6)]
-
+            self.files_to_download = [self.download_file_name.format(gmt_plus=0)]
+            self.files_to_download.append(self.download_file_name.format(gmt_plus=1))
 
         super(HRRRSurfaceObservations, self).__init__(date, vars, domain, download_directory, web_directory)
 

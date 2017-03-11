@@ -5,7 +5,7 @@ import WeatherData
 
 class RTMAObservations(WeatherData.WeatherData):
    
-    def __init__(self, date, vars, domain, download_directory, web_directory):
+    def __init__(self, date, vars, domain, download_directory, web_directory, testing=False):
 
         self.obs = True
 
@@ -46,6 +46,8 @@ class RTMAObservations(WeatherData.WeatherData):
                     time=date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(vars),
                     domain=domain)
             self.visualization_heatmap_files.append(visualization_heatmap_file)
+        if testing:
+            self.files_to_download = [self.download_file_name.format(gmt_plus=6)]
 
         self.var_lookup_table = {}
         self.var_lookup_table['2MTK'] = 3
