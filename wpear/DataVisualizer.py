@@ -1,7 +1,10 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 
+import os
+import sys
 import pygrib
 import random
+import imageio
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -14,18 +17,12 @@ class DataVisualizer():
     DataVisualizers have the following properties:
 
     Attributes:
-        mode: A string representing mode of the visualization
         shapeFile: A string representing the name of shape file
     """
 
-    def __init__(self, mode):
+    def __init__(self):
         """Return a DataVisualizer generating the data visualization
-        in *mode* mode
         """
-        if mode is not None:
-            self.mode = mode
-
-        self.mode = 'static'
         # default shapeFile
         self.shapeFile = './shapefile/tl_2013_18_cousub/tl_2013_18_cousub'
 
@@ -96,6 +93,29 @@ class DataVisualizer():
         plt.close(fig)
 
 
+    def Animated(self, grib_objects, file_name):
+        """Generate Animated Heatmap with Data from grib_objects
+        grib_objects:   a list of grib objects
+        file_name:      a string representing the name of generated picture
+        """
+        filenames = []
+        images = []
+        count = 0
+        while (count < len(grib_objects)):
+            filenames.append('tmp/' + 'pic_' + str(count) + '.jpg')
+            self.Heatmap(grib_objects[count], filenames[count])
+            print 'Generated ' + filenames[count]
+            count += 1
+
+        for filename in filenames:
+            images.append(imageio.imread(filename))
+
+        kargs = { 'duration' : 0.5 }
+        imageio.mimsave(file_name, images, 'GIF', **kargs)
+
+        # remove tmp files in tmp dir
+        for f in filenames:
+            os.remove(f)
 
 
     def SimplePlot(self, grib_object, file_name):
@@ -192,19 +212,36 @@ class DataVisualizer():
         plt.savefig(file_name)
 
 
-# GIF
 
 # Make a static DataVisualizer(default)
-#v = DataVisualizer(None)
+v = DataVisualizer()
 
 # Manually get grib data object
-#gribFile = './sample_data/hrrr.t00z.wrfnatf00.grib2'
-#grbs = pygrib.open(gribFile)
-#grb = grbs.select(name='Temperature')[0]
+# gribFile = './sample_data/hrrr.t00z.wrfsfcf00.grib2'
+# grbs = pygrib.open(gribFile)
+# grb = grbs.select(name='Temperature')[0]
 
-# Generate visualization
-#file_name = "out/pic.jpg"
+# Generate static visualization
+# file_name = "out/pic.jpg"
 # v.Heatmap(grb, file_name)
+# grbs.close()
+
+# Manually get list of grib data object
+msgs = []
+indir = 'sample_data'
+for root, dirs, filenames in os.walk(indir):
+    for filename in filenames:
+        grbs = pygrib.open(os.path.join(root,filename))
+        grb = grbs.select(name='Temperature')[0]
+        msgs.append(grb)
+        grbs.close
+
+print np.shape(msgs)
+# Generate animated visualization
+file_name = "out/pic.gif"
+v.Animated(msgs, file_name)
+
+
 # v.SimplePlot(grb, file_name)
 # v.WireframePlot(grb, file_name)
 # v.SurfacePlot(grb, file_name)
