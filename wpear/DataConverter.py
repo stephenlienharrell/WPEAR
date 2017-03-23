@@ -1,49 +1,68 @@
 #! /usr/bin/env python
 
-import pygrib, os
-import numpy as np
+import shlex,os,subprocess
 
-def convert(inputFilePath, outputFilePath):
-	gfile = pygrib.open(inputFilePath)
-	gobj = gfile.select(name='2 metre temperature')[0]
-	lats = gobj.latlons()[0]
-	lons = gobj.latlons()[1]
+class DataConverter:
 
-	# extract the required region = Indiana
-	reqdata, reqlats, reqlons = gobj.data(lat1=37.22,lat2=41.22,lon1=-88.79,lon2=-84.79)
-	reqmin = reqdata.min()
-	# print reqdata.shape, lats.min(), lats.max(), lons.min(), lons.max()
+	FNULL=open(os.devnull, 'w')
 
-	# initialize new data array with extracted data
-	newdata = np.full(gobj.values.shape, reqmin, dtype=np.float32, order='C')	
-	totalsize = len(lats)*len(lats[0])
-	rowsize = len(lats[0])
-	reqdatacount = 0
-	for i in range(totalsize):
-		r = i / rowsize
-		c = i % rowsize
-		if lats[r][c] == reqlats[reqdatacount] and lons[r][c] == reqlons[reqdatacount]:
-			newdata[r][c] = reqdata[reqdatacount]
-			reqdatacount = reqdatacount + 1
-			# print '(r,c) = (' + str(r) + ',' + str(c) + '), reqdatacount = ' + str(reqdatacount)
-		if reqdatacount >= len(reqdata):
-			break
+	def extractMessages(self, inputfilepath, varlist, outputfilepath):
 
-	# set data array with new data array
-	# ISSUE : rounds off to 1 d.p. <<<<<<<<<<<<<<<<
-	gobj.values = newdata
 
-	# save message object in file
-	msg = gobj.tostring()
-	gfile.close()
-	fullFilePath = outputFilePath
-	grbout = open(fullFilePath,'wb')
-	grbout.write(msg)
-	grbout.close()
+		cmd1 = './wgrib2 {} -s'.format(inputfilepath)
+		print 'cmd1 = {}'.format(cmd1)
+		pipe1 = subprocess.Popen(shlex.split(cmd1), stdout=subprocess.PIPE)
+		greplist = ['grep']
+		for var in varlist:
+			greplist.append('-e')
+			greplist.append(var)
 
-	# return file name
-	return fullFilePath
+		pipe2 = subprocess.Popen(greplist, stdin=pipe1.stdout, stdout=subprocess.PIPE)
+		outputfilepath = inputfilepath.split('/')[0] + '/em_' + inputfilepath.split('/')[-1]
+
+		cmd3 = './wgrib2 -i {} -grib {}'.format(inputfilepath, outputfilepath)
+		pipe3 = subprocess.Popen(shlex.split(cmd3), stdin=pipe2.stdout, stdout=self.FNULL)
 
 
 
-#print convert('out1.grib2')
+	def subsetRegion(self, inputfilepath, minlat, maxlat, minlon, maxlon, outputfilepath):
+		cmd = './wgrib2 {} -small_grib {}:{} {}:{} {} -set_grib_type same'.format(inputfilepath, minlon, maxlon, minlat, maxlat, outputfilepath)
+		try:
+			subprocess.check_call(shlex.split(cmd), stdout=self.FNULL)
+		except subprocess.CalledProcessError as e:
+			print e.cmd
+			print e.returncode
+			print e.output
+
+
+
+
+###############################################################################################
+########################################### Test ##############################################
+###############################################################################################
+# dc = DataConverter()
+
+
+###############################################################################################
+######################################### extractMessages #####################################
+###############################################################################################
+# dc.extractMessages('sourceFileDownloads/rtma2p5.t00z.2dvaranl_ndfd.grb2', [':DPT:2 m above ground', ':TMP:2 m above ground'], 'sourceFileDownloads/em_rtma2p5.t00z.2dvaranl_ndfd.grb2')
+# dc.extractMessages('sourceFileDownloads/hrrr.t00z.wrfsfcf18.grib2', [':TMP:500 mb', ':WIND:10 m above ground'], 'sourceFileDownloads/em_hrrr.t00z.wrfsfcf18.grib2')
+
+
+###############################################################################################
+######################################### subsetRegion ########################################
+###############################################################################################
+# dc.subsetRegion('sourceFileDownloads/em_rtma2p5.t00z.2dvaranl_ndfd.grb2', 38.22, 41.22, -87.79, -84.79, 'sourceFileDownloads/sem_rtma2p5.t00z.2dvaranl_ndfd.grb2')
+# dc.subsetRegion('sourceFileDownloads/em_hrrr.t00z.wrfsfcf18.grib2', 38.22, 41.22, -87.79, -84.79, 'sourceFileDownloads/sem_hrrr.t00z.wrfsfcf18.grib2')
+
+
+
+
+
+
+
+
+
+
+
