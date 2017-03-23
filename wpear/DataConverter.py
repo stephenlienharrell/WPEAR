@@ -6,10 +6,11 @@ class DataConverter:
 
 	FNULL=open(os.devnull, 'w')
 
+	
+
 	def extractMessages(self, inputfilepath, varlist, outputfilepath):
 
 		cmd1 = './wgrib2 {} -s'.format(inputfilepath)
-
 		try:	
 			ps = subprocess.check_output(shlex.split(cmd1), stderr=subprocess.STDOUT)
 		except subprocess.CalledProcessError as e:
@@ -43,6 +44,7 @@ class DataConverter:
 		pipe2 = subprocess.Popen(greplist, stdin=pipe1.stdout, stdout=subprocess.PIPE)
 		cmd3 = './wgrib2 -i {} -grib {}'.format(inputfilepath, outputfilepath)
 		pipe3 = subprocess.Popen(shlex.split(cmd3), stdin=pipe2.stdout, stdout=self.FNULL)
+		pipe3.wait()
 		
 
 
@@ -55,6 +57,20 @@ class DataConverter:
 			print e.cmd
 			print e.returncode
 			print e.output
+
+
+
+
+	def extractMessagesAndSubsetRegion(self, inputfilepath, varlist, tempfiledir, minlat, maxlat, minlon, maxlon, outputfilepath):
+		tempfilepath = tempfiledir.split('/')[0] + '/' + inputfilepath.split('/')[-1]
+		self.extractMessages(inputfilepath, varlist, tempfilepath)
+		self.subsetRegion(tempfilepath, minlat, maxlat, minlon, maxlon, outputfilepath)
+		os.remove(tempfilepath)
+
+
+
+
+
 
 
 
@@ -81,7 +97,11 @@ class DataConverter:
 # dc.subsetRegion('sourceFileDownloads/em_hrrr.t00z.wrfsfcf00.grib2', 38.22, 41.22, -87.79, -84.79, 'sourceFileDownloads/sem_hrrr.t00z.wrfsfcf00.grib2')
 
 
-
+###############################################################################################
+############################### extractMessagesAndSubsetRegion ################################
+###############################################################################################
+# dc.extractMessagesAndSubsetRegion('sourceFileDownloads/rtma2p5.t00z.2dvaranl_ndfd.grb2', [':DPT:2 m above ground', ':TMP:2 m above ground'], 'temp/', 38.22, 41.22, -87.79, -84.79, 'sourceFileDownloads/sem_rtma2p5.t00z.2dvaranl_ndfd.grb2')
+# dc.extractMessagesAndSubsetRegion('sourceFileDownloads/hrrr.t00z.wrfsfcf00.grib2', [':TMP:500 mb', ':WIND:10 m above ground'], 'temp', 38.22, 41.22, -87.79, -84.79, 'sourceFileDownloads/sem_hrrr.t00z.wrfsfcf00.grib2')
 
 
 
