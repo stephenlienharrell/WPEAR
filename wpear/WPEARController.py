@@ -4,28 +4,25 @@ import HRRRSurfaceForecasts
 import HRRRSurfaceObservations
 import RTMAObservations
 
-DOWNLOAD_DIRECTORY = 'temp'
-WEB_DIRECTORY = 'web'
 VARS = ['2MT', 'DPT']
 DOMAIN = 'IND90k'
 
-TESTING = True
 
-def StartRun():
+def StartRun(options):
 
     now = datetime.datetime.utcnow()
     one_day_delta = datetime.timedelta(days=1)
 
-    if TESTING:
+    if options.testing:
         hrrr_fcast = HRRRSurfaceForecasts.HRRRSurfaceForecasts(now - one_day_delta,
-                VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY, testing=True)
+                VARS, DOMAIN, options.download_dir, options.web_dir, testing=options.testing)
         hrrr_fcast.DownloadData()
         hrrr_fcast.ConvertData()
         hrrr_fcast.CleanupDownloads()
         hrrr_fcast.VisualizeData()
         
         hrrr_obs = HRRRSurfaceObservations.HRRRSurfaceObservations(now - one_day_delta,
-                VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY, testing=True)
+                VARS, DOMAIN, options.download_dir, options.web_dir, testing=options.testing)
         hrrr_obs.DownloadData()
         hrrr_obs.ConvertData()
         hrrr_obs.CleanupDownloads()
@@ -39,7 +36,7 @@ def StartRun():
     for date in rtma_dates:
         print 'Starting RTMA Observations for ' + date.strftime('%Y%m%d')
         rtma_obs = RTMAObservations.RTMAObservations(date,
-                VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY)
+                VARS, DOMAIN, options.download_dir, options.web_dir, testing=options.testing)
         rtma_obs.DownloadData()
         rtma_obs.ConvertData()
         rtma_obs.CleanupDownloads()
@@ -49,7 +46,7 @@ def StartRun():
     for date in hrrr_dates:
         print 'Starting HRRR Forecasts for ' + date.strftime('%Y%m%d')
         hrrr_fcast = HRRRSurfaceForecasts.HRRRSurfaceForecasts(date,
-                VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY)
+                VARS, DOMAIN, options.download_dir, options.web_dir, testing=options.testing)
         hrrr_fcast.DownloadData()
         hrrr_fcast.ConvertData()
         hrrr_fcast.CleanupDownloads()
@@ -58,7 +55,7 @@ def StartRun():
     for date in hrrr_dates:
         print 'Starting HRRR Observations for ' + date.strftime('%Y%m%d')
         hrrr_obs = HRRRSurfaceObservations.HRRRSurfaceObservations(date,
-                VARS, DOMAIN, DOWNLOAD_DIRECTORY, WEB_DIRECTORY)
+                VARS, DOMAIN, options.download_dir, options.web_dir, testing=options.testing)
         hrrr_obs.DownloadData()
         hrrr_obs.ConvertData()
         hrrr_obs.CleanupDownloads()
