@@ -156,13 +156,18 @@ class DataVisualizer():
         # norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
         norm = mpl.colors.Normalize(vmin=vmin,vmax=vmax)
 
-        cs = m.pcolormesh(x,y,data,
+        ab = m.pcolormesh(x,y,data,
                         shading='flat',
                         vmin=vmin,
                         vmax=vmax,
                         cmap=plt.cm.jet)
 
-        cbar = plt.colorbar(cs, norm=norm, location='bottom', fraction=0.046, pad=0.06)
+        cbar = plt.colorbar(location='bottom', fraction=0.046, pad=0.06)
+        # vmin1, vmax1 = plt.gci().get_clim()
+        # print vmin1
+        # print vmin
+        # print vmax1
+        # print vmax1
         # cbar = mpl.colorbar.ColorbarBase(ax2, cmap=plt.cm.jet, norm=norm, orientation='horizontal')
 
         # Adjust the position of Unit
