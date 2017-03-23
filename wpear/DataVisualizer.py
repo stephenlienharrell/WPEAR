@@ -156,18 +156,15 @@ class DataVisualizer():
         # norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
         norm = mpl.colors.Normalize(vmin=vmin,vmax=vmax)
 
-        ab = m.pcolormesh(x,y,data,
-                        shading='flat',
-                        vmin=vmin,
-                        vmax=vmax,
-                        cmap=plt.cm.jet)
+        # ab = m.pcolormesh(x,y,data,
+        #                 shading='flat',
+        #                 vmin=vmin,
+        #                 vmax=vmax,
+        #                 cmap=plt.cm.jet)
+        
+        m.imshow(grib_object['values'],vmin=vmin,vmax=vmax, cmap=plt.cm.jet)
 
         cbar = plt.colorbar(location='bottom', fraction=0.046, pad=0.06)
-        # vmin1, vmax1 = plt.gci().get_clim()
-        # print vmin1
-        # print vmin
-        # print vmax1
-        # print vmax1
         # cbar = mpl.colorbar.ColorbarBase(ax2, cmap=plt.cm.jet, norm=norm, orientation='horizontal')
 
         # Adjust the position of Unit
@@ -211,7 +208,7 @@ class DataVisualizer():
         for filename in filenames:
             images.append(imageio.imread(filename))
 
-        kargs = { 'duration' : 0.8 }
+        kargs = { 'duration' : 0.2 }
         imageio.mimsave(file_name, images, 'GIF', **kargs)
 
         # Remove tmp files in tmp dir
