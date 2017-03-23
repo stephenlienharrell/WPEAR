@@ -1,5 +1,6 @@
 # omitted directory
 out
+tmp/*
 sample_data
 downloads
 converted

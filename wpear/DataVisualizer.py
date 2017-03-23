@@ -94,8 +94,35 @@ class DataVisualizer():
         plt.savefig(file_name)
         plt.close(fig)
 
+
+    def GenerateMasterMappable(self, grib_object, vmin, vmax):
+        """Generate master mappable with vmin and vmax
+        grib_object:    an object containing raw data to be visualized
+        vmin:        lower limit
+        vmax:        upper limit 
+        Return mappable object
+        """
+        data = grib_object.values
+        lat,lon = grib_object.latlons()
+
+        m = Basemap(
+                resolution='c', # c, l, i, h, f or None
+                projection='cyl',
+                lat_0=39.72, lon_0=-86.29,
+                llcrnrlon=-87.79, llcrnrlat= 38.22,
+                urcrnrlon=-84.79, urcrnrlat=41.22)
+
+        x,y = m(lon, lat)
+        cs = m.pcolormesh(x,y,data,
+                        shading='flat',
+                        vmin=vmin,
+                        vmax=vmax,
+                        cmap=plt.cm.jet)
+        return cs
+
+
     
-    def Frame(self, grib_object, file_name, vmin, vmax):
+    def Frame(self, grib_object, file_name, vmin, vmax, cs):
         """Generate a Heatmap as one frame for final GIF product
         grib_object:    an object containing raw data to be visualized
         file_name:   a string representing the name of generated picture
@@ -108,7 +135,8 @@ class DataVisualizer():
         data_type = grib_object['name']
 
         fig = plt.figure(figsize=(8,8))
-        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        ax1 = fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        # ax2 = fig.add_axes([0.1, 0.0, 0.8, 0.1])
 
         m = Basemap(
                 resolution='c', # c, l, i, h, f or None
@@ -123,28 +151,30 @@ class DataVisualizer():
         m.drawmeridians(meridians,labels=[True,False,False,True])
 
         x,y = m(lon, lat)
-        bounds = np.linspace(vmin, vmax, 10)
-        norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
-        # norm = mpl.colors.Normalize(vmin=vmin,vmax=vmax)
+        
+        # bounds = np.linspace(vmin, vmax, 10)
+        # norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
+        norm = mpl.colors.Normalize(vmin=vmin,vmax=vmax)
 
         cs = m.pcolormesh(x,y,data,
-                        shading='gouraud',
-                        norm=norm,
+                        shading='flat',
+                        vmin=vmin,
+                        vmax=vmax,
                         cmap=plt.cm.jet)
 
+        cbar = plt.colorbar(cs, norm=norm, location='bottom', fraction=0.046, pad=0.06)
+        # cbar = mpl.colorbar.ColorbarBase(ax2, cmap=plt.cm.jet, norm=norm, orientation='horizontal')
 
-        cbar = plt.colorbar(cs,location='bottom', fraction=0.046, pad=0.06)
-        
         # Adjust the position of Unit
         cbar_ax = cbar.ax
         cbar_ax.text(0.0, -1.3, unit, horizontalalignment='left')
         m.readshapefile(self.shapeFile,'areas')
         plt.title(data_type)
         plt.savefig(file_name)
-        plt.close(fig)    
+        plt.close(fig)   
 
 
-    def Animated(self, grib_objects, file_name):
+    def AnimatedHeatMap(self, grib_objects, file_name):
         """Generate Animated Heatmap with Data from grib_objects
         grib_objects:   a list of grib objects
         file_name:      a string representing the name of generated picture
@@ -155,29 +185,31 @@ class DataVisualizer():
         vmin = sys.maxint
         vmax = -vmin - 1
 
+        # Final min and max, and define output file names
         while (count < len(grib_objects)):
             filenames.append('tmp/' + 'pic_' + str(count) + '.jpg')
-            # Get min and max among all data
-            if grib_objects[count]['maximum'] > vmax:
-                vmax = grib_objects[count]['maximum']
-
-            if grib_objects[count]['minimum'] < vmin:
-                vmin = grib_objects[count]['minimum']
+            # Get min and max of all data values
+            vmax = max(grib_objects[count]['maximum'], vmax)
+            vmin = min(grib_objects[count]['minimum'], vmin)
             count += 1
 
+        # Generate the master mappable object for generating colorbar
+        cs = self.GenerateMasterMappable(grib_objects[0], vmin, vmax)
+
+        # Generate image of each frame
         while (count > 0):
             index = len(grib_objects) - count
-            self.Frame(grib_objects[index], filenames[index], vmin, vmax)
+            self.Frame(grib_objects[index], filenames[index], vmin, vmax, cs)
             print 'File ' + filenames[index] + " generated"
             count -= 1
 
         for filename in filenames:
             images.append(imageio.imread(filename))
 
-        kargs = { 'duration' : 0.5 }
+        kargs = { 'duration' : 0.8 }
         imageio.mimsave(file_name, images, 'GIF', **kargs)
 
-        # remove tmp files in tmp dir
+        # Remove tmp files in tmp dir
         # for f in filenames:
             # os.remove(f)
 
@@ -302,7 +334,7 @@ for root, dirs, filenames in os.walk(indir):
 
 # Generate animated visualization
 file_name = "out/pic.gif"
-v.Animated(msgs, file_name)
+v.AnimatedHeatMap(msgs, file_name)
 
 
 # v.SimplePlot(grb, file_name)
