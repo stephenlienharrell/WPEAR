@@ -13,7 +13,6 @@ import matplotlib.colors as colors
 from mpl_toolkits.basemap import Basemap
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
-from matplotlib.animation import ArtistAnimation
 
 class DataVisualizer():
     """A DataVisualizer generates visualizations of data from converted grib file.
@@ -22,10 +21,8 @@ class DataVisualizer():
         shapeFile: A string representing the name of shape file
     """
     
-    vmin = sys.maxint
-    vmax = -vmin - 1
+    # AxesImage object
     im = None
-    m = None
 
     def __init__(self):
         """Return a DataVisualizer generating the data visualization
@@ -101,48 +98,20 @@ class DataVisualizer():
         plt.close(fig)
 
 
-    def GenerateMasterMappable(self, grib_object, vmin, vmax):
-        """Generate master mappable with vmin and vmax
-        grib_object:    an object containing raw data to be visualized
-        vmin:        lower limit
-        vmax:        upper limit 
-        Return mappable object
+    def InitFig(self, grib_object, vmin, vmax):
+        """ Init the first image of GIF
+        grib_object: an object containing raw data to be visualized
+        vmin: min of all data
+        vmax: max of all data
+        return fig
         """
-        data = grib_object.values
-        lat,lon = grib_object.latlons()
+        fig = plt.figure(figsize=(8,8))
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
 
-        m = Basemap(
-                resolution='c', # c, l, i, h, f or None
-                projection='cyl',
-                lat_0=39.72, lon_0=-86.29,
-                llcrnrlon=-87.79, llcrnrlat= 38.22,
-                urcrnrlon=-84.79, urcrnrlat=41.22)
-
-        x,y = m(lon, lat)
-        cs = m.pcolormesh(x,y,data,
-                        shading='flat',
-                        vmin=vmin,
-                        vmax=vmax,
-                        cmap=plt.cm.jet)
-        return cs
-
-
-    
-    def Frame(self, grib_object, file_name, vmin, vmax, cs):
-        """Generate a Heatmap as one frame for final GIF product
-        grib_object:    an object containing raw data to be visualized
-        file_name:   a string representing the name of generated picture
-        vmin:        lower limit
-        vmax:        upper limit 
-        """
-        data = grib_object.values
-        lat,lon = grib_object.latlons()
         unit = grib_object['units']
         data_type = grib_object['name']
-
-        fig = plt.figure(figsize=(8,8))
-        ax1 = fig.add_axes([0.1, 0.1, 0.8, 0.8])
-        # ax2 = fig.add_axes([0.1, 0.0, 0.8, 0.1])
+        lat,lon = grib_object.latlons()
+        data = grib_object.values
 
         m = Basemap(
                 resolution='c', # c, l, i, h, f or None
@@ -155,39 +124,24 @@ class DataVisualizer():
         m.drawparallels(parallels,labels=[False,True,True,False])
         meridians = np.arange(-87.79, -84.79, 0.5)
         m.drawmeridians(meridians,labels=[True,False,False,True])
-
+        
         x,y = m(lon, lat)
-        
-        # bounds = np.linspace(vmin, vmax, 10)
-        # norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
-        norm = mpl.colors.Normalize(vmin=vmin,vmax=vmax)
-
-        # ab = m.pcolormesh(x,y,data,
-        #                 shading='flat',
-        #                 vmin=vmin,
-        #                 vmax=vmax,
-        #                 cmap=plt.cm.jet)
-        
-        m.imshow(grib_object['values'],vmin=vmin,vmax=vmax, cmap=plt.cm.jet)
-
+        self.im = m.imshow(grb['values'],vmin=vmin,vmax=vmax, cmap=plt.cm.jet)
         cbar = plt.colorbar(location='bottom', fraction=0.046, pad=0.06)
-        # cbar = mpl.colorbar.ColorbarBase(ax2, cmap=plt.cm.jet, norm=norm, orientation='horizontal')
 
-        # Adjust the position of Unit
+         # Adjust the position of Unit
         cbar_ax = cbar.ax
         cbar_ax.text(0.0, -1.3, unit, horizontalalignment='left')
         m.readshapefile(self.shapeFile,'areas')
         plt.title(data_type)
-        plt.savefig(file_name)
-        plt.close(fig)   
+        return fig
 
 
     def UpdateFig(self, grib_object):
+        """Update current figure with different grib_object
+        grib_object:    an object containing raw data to be visualized
+        """
         self.im.set_data(grib_object['values'])
-        # lat,lon = grib_object.latlons()
-        # m = self.m
-        # x, y = m(lon, lat)
-        # self.im.set_array([x, y, grib_object['values']])
        
 
     def AnimatedHeatMap(self, grib_objects, file_name):
@@ -198,78 +152,26 @@ class DataVisualizer():
         filenames = []
         frames = []
         count = 0
+        vmin = sys.maxint
+        vmax = -vmin - 1
 
         # Final min and max, and define output file names
         while (count < len(grib_objects)):
             filenames.append('tmp/' + 'pic_' + str(count) + '.jpg')
             # Get min and max of all data values
-            self.vmax = max(grib_objects[count]['maximum'], self.vmax)
-            self.vmin = min(grib_objects[count]['minimum'], self.vmin)
+            vmax = max(grib_objects[count]['maximum'], vmax)
+            vmin = min(grib_objects[count]['minimum'], vmin)
             count += 1
 
-        # Generate the master mappable object for generating colorbar
-        # cs = self.GenerateMasterMappable(grib_objects[0], vmin, vmax)
-
-        # Generate image of each frame
-        # while (count > 0):
-        #     index = len(grib_objects) - count
-        #     self.Frame(grib_objects[index], filenames[index], vmin, vmax, cs)
-        #     print 'File ' + filenames[index] + " generated"
-        #     count -= 1
-
-        # for filename in filenames:
-        #     frames.append(imageio.imread(filename))
-
-        # kargs = {'fps':1.0, 'quantizer':'nq'}
-        # imageio.plugins.freeimage.download()
-        # imageio.mimsave(file_name, frames, 'GIF-FI', **kargs)
-
         # Generate GIF via Matplotlib Animation
-        fig = plt.figure(figsize=(8,8))
-        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
-
-        grb = grib_objects[0]
-        unit = grb['units']
-        data_type = grb['name']
-        lat,lon = grb.latlons()
-        data = grb.values
-
-        m = Basemap(
-                resolution='c', # c, l, i, h, f or None
-                projection='cyl',
-                lat_0=39.72, lon_0=-86.29,
-                llcrnrlon=-87.79, llcrnrlat= 38.22,
-                urcrnrlon=-84.79, urcrnrlat=41.22)
-
-        parallels = np.arange(38.22, 41.22, 0.5)
-        m.drawparallels(parallels,labels=[False,True,True,False])
-        meridians = np.arange(-87.79, -84.79, 0.5)
-        m.drawmeridians(meridians,labels=[True,False,False,True])
-        
-        x,y = m(lon, lat)
-        self.im = m.imshow(grb['values'],vmin=self.vmin,vmax=self.vmax, cmap=plt.cm.jet)
-        # self.im = m.pcolormesh(x,y,data,
-        #                 shading='flat',
-        #                 vmin=self.vmin,
-        #                 vmax=self.vmax,
-        #                 cmap=plt.cm.jet)
-        cbar = plt.colorbar(location='bottom', fraction=0.046, pad=0.06)
-
-         # Adjust the position of Unit
-        cbar_ax = cbar.ax
-        cbar_ax.text(0.0, -1.3, unit, horizontalalignment='left')
-        m.readshapefile(self.shapeFile,'areas')
-        plt.title(data_type)
-        self.m = m
+        fig = self.InitFig(grib_objects[0], vmin, vmax)
 
         # Start updating figure
         print 'Start updating figure'
         anim = FuncAnimation(fig, self.UpdateFig, frames=grib_objects)
         anim.save(file_name, dpi=80, writer='imagemagick')
         
-        # Remove tmp files in tmp dir
-        # for f in filenames:
-            # os.remove(f)
+        plt.close(fig)
 
 
     def SimplePlot(self, grib_object, file_name):
