@@ -68,6 +68,7 @@ class DataVisualizer():
         lat,lon = grib_object.latlons()
         unit = grib_object['units']
         data_type = grib_object['name']
+        date = self.GetTime(grib_object)
 
         fig = plt.figure(figsize=(8,8))
         ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
@@ -95,7 +96,7 @@ class DataVisualizer():
         cbar_ax = cbar.ax
         cbar_ax.text(0.0, -1.3, unit, horizontalalignment='left')
         m.readshapefile(self.shapeFile,'areas')
-        plt.title(data_type)
+        plt.title(data_type + '   ' + date, fontsize = 'x-large')
         plt.savefig(file_name)
         plt.close(fig)
 
@@ -144,7 +145,7 @@ class DataVisualizer():
         cbar_ax = cbar.ax
         cbar_ax.text(0.0, -1.3, unit, horizontalalignment='left')
         m.readshapefile(self.shapeFile,'areas')
-        self.title = plt.title(data_type + '   ' + date, fontsize = 'large')
+        self.title = plt.title(data_type + '   ' + date, fontsize = 'x-large')
         return fig
 
 
@@ -302,17 +303,17 @@ v = DataVisualizer()
 ###################################
 
 # Manually get list of grib data object
-msgs = []
-indir = 'sample_data'
-for root, dirs, filenames in os.walk(indir):
-    for filename in filenames:
-        grbs = pygrib.open(os.path.join(root,filename))
-        grb = grbs.select(name='2 metre temperature')[0]
-        msgs.append(grb)
-        grbs.close
+# msgs = []
+# indir = 'sample_data'
+# for root, dirs, filenames in os.walk(indir):
+#     for filename in filenames:
+#         grbs = pygrib.open(os.path.join(root,filename))
+#         grb = grbs.select(name='2 metre temperature')[0]
+#         msgs.append(grb)
+#         grbs.close
 
-file_name = "out/pic.gif"
-v.AnimatedHeatMap(msgs, file_name)
+# file_name = "out/pic.gif"
+# v.AnimatedHeatMap(msgs, file_name)
 
 
 #################################
