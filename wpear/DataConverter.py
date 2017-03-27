@@ -95,7 +95,7 @@ class DataConverter:
         self.subsetRegion(inputfilepath, minlat, maxlat, minlon, maxlon, tempfilepath)
         self.extractMessages(tempfilepath, varlist, outputfilepath)
         os.remove(tempfilepath)
-        os.remove(tempfilepath2)
+#        os.remove(tempfilepath2)
 
 
 
