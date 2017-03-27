@@ -4,7 +4,6 @@ import os
 import sys
 import pygrib
 import random
-import imageio
 import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
