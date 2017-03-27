@@ -78,9 +78,10 @@ class DataConverter:
 
 
     def extractMessagesAndSubsetRegion(self, inputfilepath, varlist, tempfiledir, minlat, maxlat, minlon, maxlon, outputfilepath):
-
-        if not os.path.exists(tempfiledir):
-            os.makedirs(tempfiledir)
+        try:
+             os.makedirs(tempfiledir)
+        except OSError:
+            pass
 
         if tempfiledir.endswith('/'):
             tempfilepath = tempfiledir + inputfilepath.split('/')[-1]
