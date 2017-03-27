@@ -3,7 +3,7 @@ import WeatherData
 
 class HRRRSurfaceForecasts(WeatherData.WeatherData):
    
-    def __init__(self, date, vars, domain, download_directory, web_directory, testing=False):
+    def __init__(self, date, vars, domain, options, testing=False):
 
         self.obs = False
 
@@ -20,9 +20,9 @@ class HRRRSurfaceForecasts(WeatherData.WeatherData):
 
         self.local_directory_date_format = '/%Y/%m/%d/hrrr_fcast'
 
-        self.local_directory = web_directory + date.strftime(self.local_directory_date_format)
+        self.local_directory = options.web_dir + date.strftime(self.local_directory_date_format)
 
-        self.local_secondary_directory = web_directory + date.strftime('/hrrr_fcast/%Y/%m/%d')
+        self.local_secondary_directory = options.web_dir + date.strftime('/hrrr_fcast/%Y/%m/%d')
 
         self.output_filename_format = 'hrrr_fcast.{time}.{vars}.{domain}.{extra_info}f{forecast_number:02d}.grb2'
 
@@ -51,8 +51,8 @@ class HRRRSurfaceForecasts(WeatherData.WeatherData):
                 self.visualization_heatmap_files.append(visualization_heatmap_file)
 
         self.var_lookup_table = {}
-        self.var_lookup_table['2MTK'] = 54
-        self.var_lookup_table['DPT'] = 57
+        self.var_lookup_table['2MTK'] = ':TMP:2 m above ground'
+        self.var_lookup_table['DPT'] = ':DPT:2 m above ground'
 
 
         if testing:
@@ -63,4 +63,4 @@ class HRRRSurfaceForecasts(WeatherData.WeatherData):
         self.max_fcast = 18
         self.hours_between_fcasts = 1
 
-        super(HRRRSurfaceForecasts, self).__init__(date, vars, domain, download_directory, web_directory)
+        super(HRRRSurfaceForecasts, self).__init__(date, vars, domain, options)

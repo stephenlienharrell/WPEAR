@@ -8,7 +8,10 @@ DOWNLOAD_DIRECTORY = 'temp'
 WEB_DIRECTORY = 'web'
 TESTING = False
 CONFIG_FILE = ['wpear.conf']
-QUIET=False
+WGRIB = './wgrib2'
+QUIET = False
+EGREP = 'egrep'
+
 
 
 def main():
@@ -23,6 +26,8 @@ def main():
     parser.add('-t', '--testing', required=False, action='store_true',
             help='Testing mode (only download a small amount of files) [DEFAULT: ' + str(TESTING) + ']')
     parser.add('-q', '--quiet', action='store_true', help='Silence console output [DEFAULT: ' + str(QUIET) + ']')
+    parser.add('-g', '--wgrib', required=False, help='Path for wgrib2 [DEFAULT: ' + str(WGRIB) + ']')
+    parser.add('-e', '--egrep', required=False, help='Path for egrep [DEFAULT: ' + str(EGREP) + ']')
 
     options = parser.parse_args()
 

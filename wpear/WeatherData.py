@@ -13,19 +13,25 @@ import DataConverter
 import DataVisualizer
 
 THREAD_MAX=20
+MINLAT = 38.22
+MAXLAT = 41.22
+MINLON = -87.79
+MAXLON = -84.79
 
 class WeatherData(object):
 
 
-    def __init__(self, date, vars, domain, download_directory, web_directory):
+    def __init__(self, date, vars, domain, options):
         self.date = date
         self.vars = vars
         self.domain = domain
-        self.web_directory = web_directory
+        self.web_directory = options.web_dir
+        self.wgrib_path = options.wgrib
+        self.egrep_path = options.egrep
         
-        self.temp_directory =  download_directory + '/' + self.tag + '/' + date.strftime('%Y%m%d') 
+        self.temp_directory =  options.download_dir + '/' + self.tag + '/' + date.strftime('%Y%m%d') 
         self.compared_viz_file_format = '{obs_tag}.{obs_date}.{obs_extra_info}_{fcast_tag}.{fcast_date}.{fcast_extra_info}f{fcast_number}_{var}.{domain}.{comp_tag}.png'
-        self.compared_viz_directory = web_directory + '/%Y/%m/%d/{obs_tag}.{fcast_tag}.{comp_tag}'
+        self.compared_viz_directory = self.web_directory + '/%Y/%m/%d/{obs_tag}.{fcast_tag}.{comp_tag}'
 
         self.threads = []
         self.thread_count = 0
@@ -55,7 +61,7 @@ class WeatherData(object):
         self._waitForThreadPool(thread_max=0)
 
     def ConvertData(self):
-        needed_vars = ['files_to_download', 'local_directory', 'converted_files']
+        needed_vars = ['files_to_download', 'local_directory', 'converted_files', 'var_lookup_table']
         self._CheckVars('ConvertData', needed_vars)
 
         print "Starting data conversion"
@@ -65,13 +71,15 @@ class WeatherData(object):
 
         converted_files = []
         for index, file_name in enumerate(self.files_to_download):
-            temp_file = self.temp_directory + '/' + file_name
-            if not os.path.exists(temp_file):
+            input_file = self.temp_directory + '/' + file_name
+            if not os.path.exists(input_file):
                 continue
             converted_file = self.converted_files[index]
             if os.path.exists(converted_file):
                 continue
-            self._addToThreadPool(_doConversion, (temp_file, converted_file))
+            self._addToThreadPool(_doConversion, (self.wgrib_path, self.egrep_path, input_file,
+                self.temp_directory + '/converter', self.var_lookup_table.values(), MINLAT, MAXLAT, MINLON, MAXLON,
+                converted_file))
             self._waitForThreadPool()
 
         self._waitForThreadPool(thread_max=0)
@@ -188,9 +196,12 @@ def _doDownload(url, file_directory, temp_directory):
     print "Download completed for %s" % file_directory
 
 
-def _doConversion(temp_file, converted_file):
-    DataConverter.convert(temp_file, converted_file)
-    print "Conversion completed for " + temp_file
+def _doConversion(wgrib_path, egrep_path, input_file, temp_directory, var_list, minlat,
+        maxlat, minlon, maxlon, converted_file):
+    dc = DataConverter.DataConverter(wgrib_path, egrep_path)
+    dc.extractMessagesAndSubsetRegion(input_file, var_list, temp_directory, minlat,
+            maxlat, minlon, maxlon, converted_file)
+    print "Conversion completed for " + input_file
 
 def _doVisualization(file_name, out_file):
     visualizer = DataVisualizer.DataVisualizer(None)
