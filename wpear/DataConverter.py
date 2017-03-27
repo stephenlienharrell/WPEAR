@@ -91,8 +91,8 @@ class DataConverter:
             tempfilepath2 = tempfiledir + '/' + inputfilepath.split('/')[-1] + 'temp2'
 
 
-        self.interploateGrid(inputfilepath, tempfilepath2)
-        self.subsetRegion(tempfilepath2, minlat, maxlat, minlon, maxlon, tempfilepath)
+#        self.interploateGrid(inputfilepath, tempfilepath2)
+        self.subsetRegion(inputfilepath, minlat, maxlat, minlon, maxlon, tempfilepath)
         self.extractMessages(tempfilepath, varlist, outputfilepath)
         os.remove(tempfilepath)
         os.remove(tempfilepath2)
