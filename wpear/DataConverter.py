@@ -59,7 +59,6 @@ class DataConverter:
         pipe1 = subprocess.Popen(shlex.split(cmd1), stdout=subprocess.PIPE)
         greplist = [self.grep_path]
         for var in varlist:
-            print var
             greplist.append('-e')
             greplist.append(var)
 
