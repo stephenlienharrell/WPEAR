@@ -5,7 +5,7 @@ import WeatherData
 
 class RTMAObservations(WeatherData.WeatherData):
    
-    def __init__(self, date, vars, domain, download_directory, web_directory, testing=False):
+    def __init__(self, date, vars, domain, options, testing=False):
 
         self.obs = True
 
@@ -20,9 +20,9 @@ class RTMAObservations(WeatherData.WeatherData):
 
         self.download_file_name = 'rtma2p5.t{gmt_plus:02d}z.2dvaranl_ndfd.grb2'
 
-        self.local_directory = web_directory + date.strftime('/%Y/%m/%d/rtma_obs')
+        self.local_directory = options.web_dir + date.strftime('/%Y/%m/%d/rtma_obs')
 
-        self.local_secondary_directory = web_directory + date.strftime('/rtma_obs/%Y/%m/%d')
+        self.local_secondary_directory = options.web_dir + date.strftime('/rtma_obs/%Y/%m/%d')
 
         self.output_filename_format = 'rtma_obs.{time}.{vars}.{domain}.2dvaranl_ndfd.grb2'
 
@@ -50,9 +50,9 @@ class RTMAObservations(WeatherData.WeatherData):
             self.files_to_download = [self.download_file_name.format(gmt_plus=6)]
 
         self.var_lookup_table = {}
-        self.var_lookup_table['2MTK'] = 3
-        self.var_lookup_table['DPT'] = 4
-        super(RTMAObservations, self).__init__(date, vars, domain, download_directory, web_directory)
+        self.var_lookup_table['2MTK'] = 'TMP:2 m above ground'
+        self.var_lookup_table['DPT'] = 'DPT:2 m above ground'
+        super(RTMAObservations, self).__init__(date, vars, domain, options)
 
     # OBS Specific
     def _GetTimeOfObs(self, file_name):
