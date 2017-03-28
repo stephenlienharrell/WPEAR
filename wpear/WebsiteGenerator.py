@@ -5,14 +5,23 @@ def showWebsite(item_list):
     html_file = open('main.html', 'w+')
     file_head = """<html><head>
     <title>WPEAR Website</title>
+    <style>
+    img {
+        height: 100px;
+        left: 1px;
+        padding: 10px 0;
+        display: inline;
+        position: absolute;
+    }
+    </style>
     <body style="background-color:lightyellow;"><center><p><h1><br>WPEAR</h1></p>"""
     html_file.write(file_head)
 
     for item in item_list:
-        if 'SECTION' in item:
+        if 'SECTION:' in item:
             if item != item_list[0]:
                 html_file.write("""</div>""")
-            html_file.write("""<br><br><div id = """ + item +""""><h2><p>""" + item + """</p></h2>""")
+            html_file.write("""<br><div id = """ + item.split(':')[1] +""""><h2><p>""" +  item.split(':')[1] + """</p></h2>""")
         elif len(item) > 1:
             html_file.write("""<h3>""" + item[1] + """</h3><img src='""" + item[0] + """' alt='""" + item[1] + """'><br>""")
     # <h2>""" + observed_name + """ Visualization</h2>
@@ -22,8 +31,7 @@ def showWebsite(item_list):
 
     file_end = """</center></body></html>"""
     html_file.write(file_end)
-    print file_end
     html_file.close()
 
     webbrowser.open_new('main.html')
-showWebsite(['SECTION 1', ['img.jpg', 'file_1'], ['img.jpg', 'file_2'], 'SECTION 2'])
+showWebsite(['SECTION:Forecast', ['img.jpg', 'file_1'], ['img.jpg', 'file_2'], 'SECTION:Observed'])
