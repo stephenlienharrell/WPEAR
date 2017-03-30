@@ -90,17 +90,17 @@ class DataConverter:
             tempfilepath = tempfiledir + '/' + inputfilepath.split('/')[-1]
             tempfilepath2 = tempfiledir + '/' + inputfilepath.split('/')[-1] + 'temp2'
 
+        self.subsetRegion(inputfilepath, minlat, maxlat, minlon, maxlon, tempfilepath)
+        self.extractMessages(tempfilepath, varlist, tempfilepath2)
         if inputfilepath.split('/')[-1].startswith('hrrr'):
-            self.interploateGridHRRR(inputfilepath, tempfilepath2)
+            self.interpolateGridHRRR(tempfilepath2, outputfilepath)
         elif inputfilepath.split('/')[-1].startswith('rtma'):
-            self.interpolateGridRTMA(inputfilepath, tempfilepath2)
+            self.interpolateGridRTMA(tempfilepath2, outputfilepath)
         else:
             raise AttributeError('no known file format found')
-        self.subsetRegion(tempfilepath2, minlat, maxlat, minlon, maxlon, tempfilepath)
-        self.extractMessages(tempfilepath, varlist, outputfilepath)
         os.remove(tempfilepath)
         os.remove(tempfilepath2)
-
+        
 
     def interpolateGridHRRR(self, inputfilepath, outputfilepath, nx=500, ny=500, dx=1000, dy=1000):
         # nx = number of grid points in x-direction
