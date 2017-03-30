@@ -90,12 +90,41 @@ class DataConverter:
             tempfilepath = tempfiledir + '/' + inputfilepath.split('/')[-1]
             tempfilepath2 = tempfiledir + '/' + inputfilepath.split('/')[-1] + 'temp2'
 
-
-#        self.interploateGrid(inputfilepath, tempfilepath2)
+        # self.interploateGrid(inputfilepath, tempfilepath2)
         self.subsetRegion(inputfilepath, minlat, maxlat, minlon, maxlon, tempfilepath)
         self.extractMessages(tempfilepath, varlist, outputfilepath)
         os.remove(tempfilepath)
-#        os.remove(tempfilepath2)
+        # os.remove(tempfilepath2)
+
+
+    def interpolateGridHRRR(self, inputfilepath, outputfilepath, nx=500, ny=500, dx=1000, dy=1000):
+        # nx = number of grid points in x-direction
+        # ny = number of grid points in y-direction
+        # dx = grid cell size in meters in x-direction
+        # dy = grid cell size in meters in y direction
+        cmd = './wgrib2 -set_grib_type same {} -new_grid_winds grid -new_grid lambert:262.5:38.5:38.5 271.821305:{}:{} 38.261837:{}:{} {}'.format(inputfilepath, nx, dx, ny, dy, outputfilepath)
+        try:
+            subprocess.check_call(shlex.split(cmd), stdout=self.FNULL)
+        except subprocess.CalledProcessError as e:
+            print e.cmd
+            print e.returncode
+            print e.output
+
+        
+        
+    def interpolateGridRTMA(self, inputfilepath, outputfilepath, nx=500, ny=500, dx=1000, dy=1000):
+        # nx = number of grid points in x-direction
+        # ny = number of grid points in y-direction
+        # dx = grid cell size in meters in x-direction
+        # dy = grid cell size in meters in y direction
+        cmd = './wgrib2 -set_grib_type same {} -new_grid_winds grid -new_grid lambert:265:25:25 272.014856:{}:{} 38.231829:{}:{} {}'.format(inputfilepath, nx, dx, ny, dy, outputfilepath)
+        try:
+            subprocess.check_call(shlex.split(cmd), stdout=self.FNULL)
+        except subprocess.CalledProcessError as e:
+            print e.cmd
+            print e.returncode
+            print e.output
+
 
 
 
