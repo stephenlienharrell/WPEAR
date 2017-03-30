@@ -28,6 +28,7 @@ class RTMAObservations(WeatherData.WeatherData):
 
         self.output_filename_format_heatmap_viz = 'rtma_obs.{time}.{vars}.{domain}.2dvaranl_ndfd.heatmap.png'
 
+        self.date_format = '%Y%m%d'
 
         self.files_to_download = []
         self.converted_files = []
@@ -46,8 +47,10 @@ class RTMAObservations(WeatherData.WeatherData):
                     time=date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(vars),
                     domain=domain)
             self.visualization_heatmap_files.append(visualization_heatmap_file)
+
         if testing:
-            self.files_to_download = [self.download_file_name.format(gmt_plus=6)]
+            self.files_to_download = [self.download_file_name.format(gmt_plus=0)]
+            self.files_to_download.append(self.download_file_name.format(gmt_plus=1))
 
         self.var_lookup_table = {}
         self.var_lookup_table['2MTK'] = 'TMP:2 m above ground'

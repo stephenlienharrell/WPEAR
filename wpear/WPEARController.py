@@ -21,13 +21,13 @@ def StartRun(options):
         hrrr_fcast.CleanupDownloads()
         hrrr_fcast.VisualizeData()
         
-        hrrr_obs = HRRRSurfaceObservations.HRRRSurfaceObservations(now - one_day_delta,
+        rtma_obs = RTMAObservations.RTMAObservations(now - one_day_delta,
                 VARS, DOMAIN, options, testing=options.testing)
-        hrrr_obs.DownloadData()
-        hrrr_obs.ConvertData()
-        hrrr_obs.CleanupDownloads()
-        hrrr_obs.VisualizeData()
-        hrrr_obs.VisualizeDifference(hrrr_fcast, 'DIF')
+        rtma_obs.DownloadData()
+        rtma_obs.ConvertData()
+        rtma_obs.CleanupDownloads()
+        rtma_obs.VisualizeData()
+        rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
 
         return
 
