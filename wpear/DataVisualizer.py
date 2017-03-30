@@ -192,6 +192,67 @@ class DataVisualizer():
         plt.savefig(file_name)
 
 
+    def GetTime(self, grib_object):
+        """Get forecast time from grib message object
+        grib_object:  grib message object
+        return the forecast time in format of string
+        """
+        info = str(grib_object)
+        s = info.split(':')
+        return s[len(s)-2] + ' ' + s[len(s)-1]
+
+
+
+    def HeatmapWithArgs(self, grib_object, file_name, data=None):
+        """Generate Heatmap with Data from grib object
+        grib_object: an object containing raw data to be visualized
+        file_name:   a string representing the name of generated picture
+        """
+        
+        if data is None:
+            data = grib_object.values
+
+        vmin = data.min()
+        vmax = data.max()
+        print 'vmin = {}, vmax = {}'.format(vmin, vmax) 
+        
+        lat,lon = grib_object.latlons()
+        unit = grib_object['units']
+        data_type = grib_object['name']
+        date = self.GetTime(grib_object)
+
+        fig = plt.figure(figsize=(8,8))
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
+
+        m = Basemap(
+                resolution='c', # c, l, i, h, f or None
+                projection='cyl',
+                lat_0=39.72, lon_0=-86.29,
+                llcrnrlon=-87.79, llcrnrlat= 38.22,
+                urcrnrlon=-84.79, urcrnrlat=41.22)
+
+        parallels = np.arange(38.22, 41.22, 0.5)
+        m.drawparallels(parallels,labels=[False,True,True,False])
+        meridians = np.arange(-87.79, -84.79, 0.5)
+        m.drawmeridians(meridians,labels=[True,False,False,True])
+
+        x,y = m(lon, lat)
+        cs = m.pcolormesh(x,y,data,
+                        shading='flat',
+                        vmin=vmin,
+                        vmax=vmax,
+                        cmap=plt.cm.jet)
+
+        cbar = plt.colorbar(cs,location='bottom', fraction=0.046, pad=0.06)
+
+        # Adjust the position of Unit
+        cbar_ax = cbar.ax
+        cbar_ax.text(0.0, -1.3, unit, horizontalalignment='left')
+        m.readshapefile(self.shapeFile,'areas')
+        plt.title(data_type + '   ' + date, fontsize = 'x-large')
+        plt.savefig(file_name)
+        plt.close(fig)
+
 # GIF
 
 # Make a static DataVisualizer(default)

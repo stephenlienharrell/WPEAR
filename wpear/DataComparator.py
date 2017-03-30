@@ -13,21 +13,18 @@ def DataComparator(f_msg, o_msg, image_file):
 	#print lons.min(), lons.max()
 	#Only doing difference for now
 	#print f_msg.values
-	dv = DataVisualizer.DataVisualizer()
 	arr = f_msg.values - o_msg.values
 	#print arr
 	gobj = f_msg
-	dv.HeatmapWithArgs(gobj, image_file, arr)
 	#gobj.values=arr#numpy.array(arr)
 	
 	#print gobj.values
 
 	# return grib message
-	return gobj
+	return [gobj, arr]
 
-def MultiSetAverage(grb_list, image_file):	# To change to index referencing: MultiSetAverage(grb_list, index)
+def MultiSetAverage(grb_list, image_file):	# To change to index refesrencing: MultiSetAverage(grb_list, index)
 	size = len(grb_list)
-	dv = DataVisualizer.DataVisualizer()
 	#print grb_list[0].values
 	if size <= 0:
 		return None
@@ -43,7 +40,6 @@ def MultiSetAverage(grb_list, image_file):	# To change to index referencing: Mul
 		arr = arr/size
 		#print arr
 		
-		dv.HeatmapWithArgs(grb_obj[0], image_file, arr)	
-		return arr
+		return [gobj, arr]
 #MultiSetAverage([pygrib.open('hrrr.t15z.wrfsubhf01.grib2').select(name='2 metre temperature')[0], pygrib.open('hrrr.t15z.wrfsubhf01.grib2').select(name='2 metre temperature')[0]])
-DataComparator(pygrib.open('in_hrrr.t00z.wrfsfcf00.grib2').select(name='Temperature')[0], pygrib.open('in_hrrr.t00z.wrfsfcf10.grib2').message(1), 'image_1.jpg')
+DataComparator(pygrib.open('/home/lala/Desktop/workspace/sourceFileDownloads/in_hrrr.t01z.wrfsfcf03.grib2')[1], pygrib.open('/home/lala/Desktop/workspace/sourceFileDownloads/in_hrrr.t00z.wrfsfcf05.grib2')[1], 'image_1.jpg')

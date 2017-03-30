@@ -114,7 +114,9 @@ class WeatherData(object):
             if not os.path.exists(obs_file):
                 continue
 
+            print '1'    
             for x in range(1, forecast.max_fcast + 1, forecast.hours_between_fcasts):
+                print '1.5'
                 fcast_date = obs_date - datetime.timedelta(hours=x)
 
                 gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
@@ -123,10 +125,13 @@ class WeatherData(object):
                         time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
                         domain=forecast.domain, forecast_number=x, extra_info=forecast.extra_info))
 
+                print 'fcast_file = {}'.format(fcast_file)
                 if not os.path.exists(fcast_file):
+                    print 'i died'
                     continue
 
                 ## TODO FIX VAR EVERYWHERE INCLUDING HERE
+                print '2'
                 out_file = out_dir + '/' + self.compared_viz_file_format.format(
                         obs_tag=self.tag, obs_date=obs_date.strftime(self.date_format) + obs_date.strftime('_t%Hz'), 
                         obs_extra_info=self.extra_info, fcast_tag=forecast.tag, 
@@ -136,8 +141,9 @@ class WeatherData(object):
 
 
                 if os.path.exists(out_file):
+                    print 'i diedd 2'
                     continue
-
+                print 'calling _doCompareVisualization'
                 self._addToThreadPool(_doCompareVisualization, (obs_file, fcast_file, out_file))
                 self._waitForThreadPool()
 
@@ -202,7 +208,7 @@ def _doVisualization(file_name, out_file):
 
 def _doCompareVisualization(obs_file, fcast_file, out_file):
     visualizer = DataVisualizer.DataVisualizer(None)
-    grib_msg = DataComparator.DataComparator(obs_file, fcast_file)
-    visualizer.Heatmap(grib_msg, out_file)
+    ret_list  = DataComparator.DataComparator(obs_file, fcast_file)
+    visualizer.HeatmapWithArgs(ret_list[0], ret_list[1], out_file)
     print "Visualizing " + out_file + " is complete"
 
