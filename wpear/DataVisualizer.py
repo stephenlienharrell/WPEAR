@@ -19,11 +19,6 @@ class DataVisualizer():
     Attributes:
         shapeFile: A string representing the name of shape file
     """
-    
-    # AxesImage object
-    im = None
-    # Text object
-    title = None
 
     def __init__(self):
         """Return a DataVisualizer generating the data visualization
@@ -90,7 +85,7 @@ class DataVisualizer():
                         cmap=plt.cm.jet)
 
         cbar = plt.colorbar(cs,location='bottom', fraction=0.046, pad=0.06)
-        
+
         # Adjust the position of Unit
         cbar_ax = cbar.ax
         cbar_ax.text(0.0, -1.3, unit, horizontalalignment='left')
@@ -110,7 +105,7 @@ class DataVisualizer():
         return s[len(s)-2] + ' ' + s[len(s)-1]
 
 
-    def InitFig(self, grib_object, vmin, vmax):
+    def Frame(self, grib_object, file_name, vmin, vmax):
         """ Initialize the first image of GIF
         grib_object: an object containing raw data to be visualized
         vmin: min of all data
@@ -120,6 +115,7 @@ class DataVisualizer():
         fig = plt.figure(figsize=(8,8))
         ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
 
+        lat,lon = grib_object.latlons()
         unit = grib_object['units']
         data_type = grib_object['name']
         date = self.GetTime(grib_object)
@@ -136,27 +132,24 @@ class DataVisualizer():
         m.drawparallels(parallels,labels=[False,True,True,False])
         meridians = np.arange(-87.79, -84.79, 0.5)
         m.drawmeridians(meridians,labels=[True,False,False,True])
-        
-        self.im = m.imshow(grib_object['values'],vmin=vmin,vmax=vmax, cmap=plt.cm.jet)
+
+        x,y = m(lon, lat)
+        im = m.pcolormesh(x,y,data,
+                        shading='flat',
+                        vmin=vmin,
+                        vmax=vmax,
+                        cmap=plt.cm.jet)
+        # self.im = m.imshow(grib_object['values'],vmin=vmin,vmax=vmax, cmap=plt.cm.jet)
         cbar = plt.colorbar(location='bottom', fraction=0.046, pad=0.06)
 
          # Adjust the position of Unit
         cbar_ax = cbar.ax
         cbar_ax.text(0.0, -1.3, unit, horizontalalignment='left')
         m.readshapefile(self.shapeFile,'areas')
-        self.title = plt.title(data_type + '   ' + date, fontsize = 'x-large')
-        return fig
+        title = plt.title(data_type + '   ' + date, fontsize = 'x-large')
+        plt.savefig(file_name)
+        plt.close(fig)
 
-
-    def UpdateFig(self, grib_object):
-        """Update current figure with different grib_object
-        grib_object:    an object containing raw data to be visualized
-        """
-        data_type = grib_object['name']
-        date = self.GetTime(grib_object)
-        self.title.set_text(data_type + '   ' + date)
-        self.im.set_data(grib_object['values'])
-       
 
     def AnimatedHeatMap(self, grib_objects, file_name):
         """Generate Animated Heatmap with Data from grib_objects
@@ -164,26 +157,40 @@ class DataVisualizer():
         file_name:      a string representing the name of generated picture
         """
         frames = []
+        filenames = []
         vmin = sys.maxint
         vmax = -vmin - 1
         count = 0
-        
-        filenames = []
         # Final min and max, and define output file names
         while (count < len(grib_objects)):
-            filenames.append('tmp/' + 'pic_' + str(count) + '.jpg')
             # Get min and max of all data values
             vmax = max(grib_objects[count].data(lat1=38.22, lat2=41.22, lon1=-87.79, lon2=-84.79)[0].max(), vmax)
             vmin = min(grib_objects[count].data(lat1=38.22, lat2=41.22, lon1=-87.79, lon2=-84.79)[0].min(), vmin)
             count += 1
 
-        # Generate GIF via Matplotlib Animation
-        fig = self.InitFig(grib_objects[0], vmin, vmax)
+        count = 0
+        f = open('file_list.txt', 'w')
 
-        # Start updating figure
-        anim = FuncAnimation(fig, self.UpdateFig, frames=grib_objects, interval=500)
-        anim.save(file_name, dpi=80, writer='imagemagick')
-        plt.close(fig)
+        # Generate each frame one by one
+        if not os.path.exists('frames/'):
+            os.makedirs('frames')
+        while (count < len(grib_objects)):
+            filenames.append('pic_' + str(count) + '.png')
+            f.write("%s\n" % filenames[count])
+            self.Frame(grib_objects[count], filenames[count], vmin, vmax)
+            # print 'Generated ' + filenames[count]
+            count += 1
+        f.close()
+
+        # Convert series of static viualization to animated file
+        os.system("convert -delay 60 @file_list.txt {}".format(file_name))
+
+        # Remove the tmp files
+        os.remove('file_list.txt')
+        for f in filenames:
+            os.remove(f)
+
+        # plt.close(fig)
 
 
     def SimplePlot(self, grib_object, file_name):

@@ -36,6 +36,7 @@ class WeatherData(object):
         self.threads = []
         self.thread_count = 0
 
+
     def DownloadData(self):
         needed_vars = ['url', 'url_directory', 'files_to_download', 'converted_files']
         self._CheckVars('DownloadData', needed_vars)
@@ -60,6 +61,7 @@ class WeatherData(object):
 
         self._waitForThreadPool(thread_max=0)
 
+        
     def ConvertData(self):
         needed_vars = ['files_to_download', 'local_directory', 'converted_files', 'var_lookup_table']
         self._CheckVars('ConvertData', needed_vars)
@@ -83,7 +85,8 @@ class WeatherData(object):
             self._waitForThreadPool()
 
         self._waitForThreadPool(thread_max=0)
-            
+    
+
     def VisualizeData(self):
         needed_vars = ['vars', 'visualization_heatmap_files', 'converted_files']
         self._CheckVars('VisualizeData', needed_vars)
@@ -100,6 +103,7 @@ class WeatherData(object):
             self._waitForThreadPool()
 
         self._waitForThreadPool(thread_max=0)
+
 
     def VisualizeAnimatedForecast(self):
         print "Starting Animated Forecast Visualization"
@@ -120,6 +124,7 @@ class WeatherData(object):
             self._waitForThreadPool()
 
         self._waitForThreadPool(thread_max=0)
+        return output_name.replace("t23z", "t00z") # horrible coding for demo
 
 
     def VisualizeDifference(self, forecast, comparator_tag):
@@ -167,7 +172,6 @@ class WeatherData(object):
                         fcast_number=x, fcast_extra_info=forecast.extra_info, var='2MTK', domain=self.domain,
                         comp_tag=comparator_tag)
 
-
                 if os.path.exists(out_file):
                     print 'i diedd 2'
                     continue
@@ -176,12 +180,14 @@ class WeatherData(object):
                 self._waitForThreadPool()
 
         self._waitForThreadPool(thread_max=0)
+        return out_file
 
 
     def CleanupDownloads(self):
         #TODO:  need to cleanup date based parent directories
         shutil.rmtree(self.temp_directory)
 
+    
     def _CheckVars(self, function, vars):
         for var in vars:
             if not hasattr(self, var):
@@ -189,12 +195,14 @@ class WeatherData(object):
                         (var, function))
 
 
+                
     def _addToThreadPool(self, function, args):
         proc = multiprocessing.Process(target=function, args=args)
         proc.start()
         self.threads.append(proc)
         self.thread_count += 1
 
+        
     def _waitForThreadPool(self, thread_max=THREAD_MAX - 1):
         count = 0
         while len(self.threads) > thread_max:
@@ -229,6 +237,7 @@ def _doConversion(wgrib_path, egrep_path, input_file, temp_directory, var_list, 
             maxlat, minlon, maxlon, converted_file)
     print "Conversion completed for " + input_file
 
+
 def _doVisualization(file_name, out_file):
     visualizer = DataVisualizer.DataVisualizer()
     grib_loaded = pygrib.open(file_name)
@@ -237,11 +246,13 @@ def _doVisualization(file_name, out_file):
     visualizer.Heatmap(grib_msg, out_file)
     print "Visualizing " + out_file + " is complete"
 
+
 def _doCompareVisualization(obs_file, fcast_file, out_file):
     visualizer = DataVisualizer.DataVisualizer()
     grib_msg = DataComparator.DataComparator(obs_file, fcast_file)
     visualizer.Heatmap(grib_msg, out_file)
     print "Visualizing " + out_file + " is complete"
+
 
 def _doForecastAnimation(fcast_files, output_name):
     gobj_list = []

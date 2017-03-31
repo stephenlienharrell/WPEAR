@@ -1,6 +1,6 @@
 import pygrib
 import numpy
-import DataVisualizer
+#import DataVisualizer
 
 def DataComparator(f_msg, o_msg, image_file):
 	#Potentially add column name too once we have more than one column in the cleaned file
@@ -12,7 +12,7 @@ def DataComparator(f_msg, o_msg, image_file):
 	#lats,lons = grb.latlons()
 	#print lons.min(), lons.max()
 	#Only doing difference for now
-	#print f_msg.values
+	print f_msg.values
 	arr = f_msg.values - o_msg.values
 	#print arr
 	gobj = f_msg
