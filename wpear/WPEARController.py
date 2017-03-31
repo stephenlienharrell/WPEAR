@@ -1,8 +1,9 @@
 import datetime
-
+import os
 import HRRRSurfaceForecasts
 import HRRRSurfaceObservations
 import RTMAObservations
+import WebsiteGenerator
 
 VARS = ['2MT', 'DPT']
 DOMAIN = 'IND90k'
@@ -20,7 +21,7 @@ def StartRun(options):
         hrrr_fcast.ConvertData()
         hrrr_fcast.CleanupDownloads()
         hrrr_fcast.VisualizeData()
-        hrrr_fcast.VisualizeAnimatedForecast()
+        viz_anim_fcast = hrrr_fcast.VisualizeAnimatedForecast()
         
         rtma_obs = RTMAObservations.RTMAObservations(now - one_day_delta,
                 VARS, DOMAIN, options, testing=options.testing)
@@ -28,7 +29,25 @@ def StartRun(options):
         rtma_obs.ConvertData()
         rtma_obs.CleanupDownloads()
         rtma_obs.VisualizeData()
-        rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
+        viz_diff_obs = rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
+        
+        # website
+        vizlist = []
+        vizlist.append('SECTION: Static Forecasts')
+        for file in hrrr_fcast.visualization_heatmap_files:
+            if os.path.exists(file):
+                vizlist.append([file, 'tag = {}'.format(file.split('/')[-1].split('.heatmap.png')[0])])
+                break
+        vizlist.append('SECTION: Dynamic Forecasts')
+        vizlist.append([viz_anim_fcast, 'tag = {}'.format(viz_anim_fcast.split('/')[-1].split('.heatmap_anim.gif')[0])])
+        vizlist.append('SECTION: Observations')
+        for file in rtma_obs.visualization_heatmap_files:
+            if os.path.exists(file):
+                vizlist.append([file, 'tag = {}'.format(file.split('/')[-1].split('.heatmap.png')[0])])
+                break;
+        vizlist.append('SECTION: Forecasts vs Observations')
+        vizlist.append([viz_diff_obs,'tag = {}'.format(file.split('/')[-1].split('.heatmap.png')[0])])
+        WebsiteGenerator.showWebsite(vizlist)
         return
 
     hrrr_dates = [now, now - one_day_delta]
