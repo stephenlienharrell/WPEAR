@@ -68,7 +68,7 @@ class HRRRSurfaceForecasts(WeatherData.WeatherData):
 
         if testing:
             self.files_to_download = []
-            for i in range(0,19):
+            for i in range(1,19):
                 self.files_to_download.append(self.download_file_name.format(gmt_plus=0, forecast_number=i))
 
         #justforecastthings
