@@ -101,6 +101,26 @@ class WeatherData(object):
 
         self._waitForThreadPool(thread_max=0)
 
+    def VisualizeAnimatedForecast(self):
+        print "Starting Animated Forecast Visualization"
+        needed_vars = []
+        self._CheckVars('VisualizeAnimatedForecast', needed_vars)
+
+        if self.obs:
+            print "This function only works for forecasts"
+            return
+
+        gobj_list = []
+        for i, file_list in enumerate(self.converted_files_by_hour):
+            output_name = self.forecast_animation_files[i]
+            if os.path.exists(output_name):
+                continue
+
+            self._addToThreadPool(_doForecastAnimation, (file_list, output_name))
+            self._waitForThreadPool()
+
+        self._waitForThreadPool(thread_max=0)
+
 
     def VisualizeDifference(self, forecast, comparator_tag):
         print "Starting Data Comparison"
@@ -216,4 +236,15 @@ def _doCompareVisualization(obs_file, fcast_file, out_file):
     grib_msg = DataComparator.DataComparator(obs_file, fcast_file)
     visualizer.Heatmap(grib_msg, out_file)
     print "Visualizing " + out_file + " is complete"
+
+def _doForecastAnimation(fcast_files, output_name):
+    gobj_list = []
+    for fcast in fcast_files:
+        if not os.path.exists(fcast):
+            return
+        gobj_list.append(pygrib.open(fcast).select(name='2 metre temperature')[0])
+
+    dv = DataVisualizer.DataVisualizer()
+    dv.AnimatedHeatMap(gobj_list, output_name)
+    print "Forecast Animation " + output_name + " is complete"
 

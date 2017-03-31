@@ -137,7 +137,7 @@ class DataVisualizer():
         meridians = np.arange(-87.79, -84.79, 0.5)
         m.drawmeridians(meridians,labels=[True,False,False,True])
         
-        self.im = m.imshow(grb['values'],vmin=vmin,vmax=vmax, cmap=plt.cm.jet)
+        self.im = m.imshow(grib_object['values'],vmin=vmin,vmax=vmax, cmap=plt.cm.jet)
         cbar = plt.colorbar(location='bottom', fraction=0.046, pad=0.06)
 
          # Adjust the position of Unit
@@ -168,6 +168,7 @@ class DataVisualizer():
         vmax = -vmin - 1
         count = 0
 
+        filenames = []
         # Final min and max, and define output file names
         while (count < len(grib_objects)):
             filenames.append('tmp/' + 'pic_' + str(count) + '.jpg')
