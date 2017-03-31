@@ -170,11 +170,12 @@ class DataVisualizer():
 
         count = 0
         f = open('file_list.txt', 'w')
+
         # Generate each frame one by one
         if not os.path.exists('frames/'):
             os.makedirs('frames')
         while (count < len(grib_objects)):
-            filenames.append('frames/' + 'pic_' + str(count) + '.jpg')
+            filenames.append('pic_' + str(count) + '.png')
             f.write("%s\n" % filenames[count])
             self.Frame(grib_objects[count], filenames[count], vmin, vmax)
             # print 'Generated ' + filenames[count]
