@@ -1,31 +1,33 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 
+import os
+import sys
 import pygrib
 import random
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 from mpl_toolkits.basemap import Basemap
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.animation import FuncAnimation
 
 class DataVisualizer():
     """A DataVisualizer generates visualizations of data from converted grib file.
     DataVisualizers have the following properties:
-
     Attributes:
-        mode: A string representing mode of the visualization
         shapeFile: A string representing the name of shape file
     """
+    
+    # AxesImage object
+    im = None
+    # Text object
+    title = None
 
-    def __init__(self, mode):
+    def __init__(self):
         """Return a DataVisualizer generating the data visualization
-        in *mode* mode
         """
-        if mode is not None:
-            self.mode = mode
-
-        self.mode = 'static'
         # default shapeFile
         self.shapeFile = './shapefile/tl_2013_18_cousub/tl_2013_18_cousub'
 
@@ -65,6 +67,7 @@ class DataVisualizer():
         lat,lon = grib_object.latlons()
         unit = grib_object['units']
         data_type = grib_object['name']
+        date = self.GetTime(grib_object)
 
         fig = plt.figure(figsize=(8,8))
         ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
@@ -87,15 +90,100 @@ class DataVisualizer():
                         cmap=plt.cm.jet)
 
         cbar = plt.colorbar(cs,location='bottom', fraction=0.046, pad=0.06)
+        
         # Adjust the position of Unit
         cbar_ax = cbar.ax
         cbar_ax.text(0.0, -1.3, unit, horizontalalignment='left')
         m.readshapefile(self.shapeFile,'areas')
-        plt.title(data_type)
+        plt.title(data_type + '   ' + date, fontsize = 'x-large')
         plt.savefig(file_name)
         plt.close(fig)
 
 
+    def GetTime(self, grib_object):
+        """Get forecast time from grib message object
+        grib_object:  grib message object
+        return the forecast time in format of string
+        """
+        info = str(grib_object)
+        s = info.split(':')
+        return s[len(s)-2] + ' ' + s[len(s)-1]
+
+
+    def InitFig(self, grib_object, vmin, vmax):
+        """ Initialize the first image of GIF
+        grib_object: an object containing raw data to be visualized
+        vmin: min of all data
+        vmax: max of all data
+        return generated figure instance
+        """
+        fig = plt.figure(figsize=(8,8))
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
+
+        unit = grib_object['units']
+        data_type = grib_object['name']
+        date = self.GetTime(grib_object)
+        data = grib_object.values
+
+        m = Basemap(
+                resolution='c', # c, l, i, h, f or None
+                projection='cyl',
+                lat_0=39.72, lon_0=-86.29,
+                llcrnrlon=-87.79, llcrnrlat= 38.22,
+                urcrnrlon=-84.79, urcrnrlat=41.22)
+
+        parallels = np.arange(38.22, 41.22, 0.5)
+        m.drawparallels(parallels,labels=[False,True,True,False])
+        meridians = np.arange(-87.79, -84.79, 0.5)
+        m.drawmeridians(meridians,labels=[True,False,False,True])
+        
+        self.im = m.imshow(grib_object['values'],vmin=vmin,vmax=vmax, cmap=plt.cm.jet)
+        cbar = plt.colorbar(location='bottom', fraction=0.046, pad=0.06)
+
+         # Adjust the position of Unit
+        cbar_ax = cbar.ax
+        cbar_ax.text(0.0, -1.3, unit, horizontalalignment='left')
+        m.readshapefile(self.shapeFile,'areas')
+        self.title = plt.title(data_type + '   ' + date, fontsize = 'x-large')
+        return fig
+
+
+    def UpdateFig(self, grib_object):
+        """Update current figure with different grib_object
+        grib_object:    an object containing raw data to be visualized
+        """
+        data_type = grib_object['name']
+        date = self.GetTime(grib_object)
+        self.title.set_text(data_type + '   ' + date)
+        self.im.set_data(grib_object['values'])
+       
+
+    def AnimatedHeatMap(self, grib_objects, file_name):
+        """Generate Animated Heatmap with Data from grib_objects
+        grib_objects:   a list of grib objects
+        file_name:      a string representing the name of generated picture
+        """
+        frames = []
+        vmin = sys.maxint
+        vmax = -vmin - 1
+        count = 0
+
+        filenames = []
+        # Final min and max, and define output file names
+        while (count < len(grib_objects)):
+            filenames.append('tmp/' + 'pic_' + str(count) + '.jpg')
+            # Get min and max of all data values
+            vmax = max(grib_objects[count]['maximum'], vmax)
+            vmin = min(grib_objects[count]['minimum'], vmin)
+            count += 1
+
+        # Generate GIF via Matplotlib Animation
+        fig = self.InitFig(grib_objects[0], vmin, vmax)
+
+        # Start updating figure
+        anim = FuncAnimation(fig, self.UpdateFig, frames=grib_objects, interval=500)
+        anim.save(file_name, dpi=80, writer='imagemagick')
+        plt.close(fig)
 
 
     def SimplePlot(self, grib_object, file_name):
@@ -191,81 +279,44 @@ class DataVisualizer():
         self.setTitle(ax, grib_object)
         plt.savefig(file_name)
 
+# Make a DataVisualizer
+v = DataVisualizer()
 
-    def GetTime(self, grib_object):
-        """Get forecast time from grib message object
-        grib_object:  grib message object
-        return the forecast time in format of string
-        """
-        info = str(grib_object)
-        s = info.split(':')
-        return s[len(s)-2] + ' ' + s[len(s)-1]
-
-
-
-    def HeatmapWithArgs(self, grib_object, file_name, data=None):
-        """Generate Heatmap with Data from grib object
-        grib_object: an object containing raw data to be visualized
-        file_name:   a string representing the name of generated picture
-        """
-        
-        if data is None:
-            data = grib_object.values
-
-        vmin = data.min()
-        vmax = data.max()
-        print 'vmin = {}, vmax = {}'.format(vmin, vmax) 
-        
-        lat,lon = grib_object.latlons()
-        unit = grib_object['units']
-        data_type = grib_object['name']
-        date = self.GetTime(grib_object)
-
-        fig = plt.figure(figsize=(8,8))
-        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
-
-        m = Basemap(
-                resolution='c', # c, l, i, h, f or None
-                projection='cyl',
-                lat_0=39.72, lon_0=-86.29,
-                llcrnrlon=-87.79, llcrnrlat= 38.22,
-                urcrnrlon=-84.79, urcrnrlat=41.22)
-
-        parallels = np.arange(38.22, 41.22, 0.5)
-        m.drawparallels(parallels,labels=[False,True,True,False])
-        meridians = np.arange(-87.79, -84.79, 0.5)
-        m.drawmeridians(meridians,labels=[True,False,False,True])
-
-        x,y = m(lon, lat)
-        cs = m.pcolormesh(x,y,data,
-                        shading='flat',
-                        vmin=vmin,
-                        vmax=vmax,
-                        cmap=plt.cm.jet)
-
-        cbar = plt.colorbar(cs,location='bottom', fraction=0.046, pad=0.06)
-
-        # Adjust the position of Unit
-        cbar_ax = cbar.ax
-        cbar_ax.text(0.0, -1.3, unit, horizontalalignment='left')
-        m.readshapefile(self.shapeFile,'areas')
-        plt.title(data_type + '   ' + date, fontsize = 'x-large')
-        plt.savefig(file_name)
-        plt.close(fig)
-
-# GIF
-
-# Make a static DataVisualizer(default)
-#v = DataVisualizer(None)
+#################################
+# Generate static visualization #
+#################################
 
 # Manually get grib data object
-#gribFile = './sample_data/hrrr.t00z.wrfnatf00.grib2'
-#grbs = pygrib.open(gribFile)
-#grb = grbs.select(name='Temperature')[0]
+# gribFile = './sample_data/hrrr.t00z.wrfsfcf00.grib2'
+# grbs = pygrib.open(gribFile)
+# grb = grbs.select(name='2 metre temperature')[0]
 
-# Generate visualization
-#file_name = "out/pic.jpg"
+# file_name = "out/pic.jpg"
 # v.Heatmap(grb, file_name)
+# grbs.close()
+
+
+###################################
+# Generate animated visualization #
+###################################
+
+# Manually get list of grib data object
+# msgs = []
+# indir = 'sample_data'
+# for root, dirs, filenames in os.walk(indir):
+#     for filename in filenames:
+#         grbs = pygrib.open(os.path.join(root,filename))
+#         grb = grbs.select(name='2 metre temperature')[0]
+#         msgs.append(grb)
+#         grbs.close
+
+# file_name = "out/pic.gif"
+# v.AnimatedHeatMap(msgs, file_name)
+
+
+#################################
+# Generate STAT visualization   #
+#################################
 # v.SimplePlot(grb, file_name)
 # v.WireframePlot(grb, file_name)
 # v.SurfacePlot(grb, file_name)

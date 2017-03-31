@@ -5,7 +5,7 @@ import WeatherData
 
 class HRRRSurfaceObservations(WeatherData.WeatherData):
    
-    def __init__(self, date, vars, domain, download_directory, web_directory, testing=False):
+    def __init__(self, date, vars, domain, options, testing=False):
 
         self.obs = True
 
@@ -19,10 +19,9 @@ class HRRRSurfaceObservations(WeatherData.WeatherData):
 
         self.download_file_name = 'hrrr.t{gmt_plus:02d}z.wrfsfcf00.grib2'
 
-        self.local_directory = web_directory + date.strftime('/%Y/%m/%d/hrrr_obs')
+        self.local_directory = options.web_dir + date.strftime('/%Y/%m/%d/hrrr_obs')
 
-        self.local_secondary_directory = web_directory + date.strftime('/hrrr_obs/%Y/%m/%d')
-
+        self.local_secondary_directory = options.web_dir + date.strftime('/hrrr_obs/%Y/%m/%d')
 
         self.output_filename_format = 'hrrr_obs.{time}.{vars}.{domain}.{extra_info}f00.grb2'
 
@@ -49,15 +48,15 @@ class HRRRSurfaceObservations(WeatherData.WeatherData):
                     domain=domain, extra_info=self.extra_info)
             self.visualization_heatmap_files.append(visualization_heatmap_file)
 
-        var_lookup_table = {}
-        var_lookup_table['2MTK'] = 54
-        var_lookup_table['DPT'] = 57
+        self.var_lookup_table = {}
+        self.var_lookup_table['2MTK'] = ':TMP:2 m above ground'
+        self.var_lookup_table['DPT'] = ':DPT:2 m above ground'
 
         if testing:
-            self.files_to_download = [self.download_file_name.format(gmt_plus=6)]
+            self.files_to_download = [self.download_file_name.format(gmt_plus=0)]
+            self.files_to_download.append(self.download_file_name.format(gmt_plus=1))
 
-
-        super(HRRRSurfaceObservations, self).__init__(date, vars, domain, download_directory, web_directory)
+        super(HRRRSurfaceObservations, self).__init__(date, vars, domain, options)
 
     # OBS Specific
     def _GetTimeOfObs(self, file_name):
