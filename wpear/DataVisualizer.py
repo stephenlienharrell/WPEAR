@@ -167,14 +167,14 @@ class DataVisualizer():
         vmin = sys.maxint
         vmax = -vmin - 1
         count = 0
-
+        
         filenames = []
         # Final min and max, and define output file names
         while (count < len(grib_objects)):
             filenames.append('tmp/' + 'pic_' + str(count) + '.jpg')
             # Get min and max of all data values
-            vmax = max(grib_objects[count]['maximum'], vmax)
-            vmin = min(grib_objects[count]['minimum'], vmin)
+            vmax = max(grib_objects[count].data(lat1=38.22, lat2=41.22, lon1=-87.79, lon2=-84.79)[0].max(), vmax)
+            vmin = min(grib_objects[count].data(lat1=38.22, lat2=41.22, lon1=-87.79, lon2=-84.79)[0].min(), vmin)
             count += 1
 
         # Generate GIF via Matplotlib Animation
