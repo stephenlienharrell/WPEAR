@@ -190,8 +190,6 @@ class DataVisualizer():
         for f in filenames:
             os.remove(f)
 
-        # plt.close(fig)
-
 
     def SimplePlot(self, grib_object, file_name):
         """Generate Basic 3D Stat Plot with Data from grib object
