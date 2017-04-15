@@ -1,4 +1,4 @@
-import webbrowser
+import webbrowser, os
 
 
 class WebsiteGenerator:
@@ -8,16 +8,23 @@ class WebsiteGenerator:
   landing_sidebar = None
   landing_main = None
   landing_page_url = None
-  landing_sidebar_url = 'wpear_landing_sidebar.html'
-  landing_main_url = 'wpear_landing_main.html'
+  landing_sidebar_url = 'website/wpear_landing_sidebar.html'
+  landing_main_url = 'website/wpear_landing_main.html'
 
 
-  def __init__(self, file_name='index.html'):
+  def __init__(self, file_name='website/index.html'):
+    # create website directory
+    cwd = os.getcwd()
+    website_dir = cwd+'/website'
+    if not os.path.exists(website_dir):
+      os.makedirs(website_dir)
+
     self.landing_page_url = file_name
     self.landing_page = open(file_name, 'w+')
     self.landing_sidebar = open(self.landing_sidebar_url, 'w+')
     self.landing_main = open(self.landing_main_url, 'w+')
     self.addSidebar()
+
 
   def showWebsite(self, item_list):
     file_head = """<html><head>
@@ -47,15 +54,16 @@ class WebsiteGenerator:
 
   def addSidebar(self):
     sidebar = """
-    <HTML>
-    <HEAD>
-      <TITLE>Weather Prediction Evaluation and Reporting (WPEAR)</TITLE>
-    </HEAD>
-    <FRAMESET cols=20%,*>
-    <FRAME src="wpear_landing_sidebar.html" noresize frameborder="0" frameborder="0" scrolling="auto" />
-    <FRAME src="wpear_landing_main.html" name="page" noresize frameborder="0" scrolling="auto" />
-    </frameset>
-    <NOFRAMES>"""
+                <HTML>
+                <HEAD>
+                  <TITLE>Weather Prediction Evaluation and Reporting (WPEAR)</TITLE>
+                </HEAD>
+                <FRAMESET cols=20%,*>
+                <FRAME src="wpear_landing_sidebar.html" noresize frameborder="0" frameborder="0" scrolling="auto" />
+                <FRAME src="wpear_landing_main.html" name="page" noresize frameborder="0" scrolling="auto" />
+                </frameset>
+                <NOFRAMES>
+              """
     self.landing_page.write(sidebar)
 
 
