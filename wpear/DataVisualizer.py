@@ -65,7 +65,7 @@ class DataVisualizer():
         date = self.GetTime(grib_object)
 
         fig = plt.figure(figsize=(8,8))
-            
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])    
 
         m = Basemap(
                 resolution='c', # c, l, i, h, f or None

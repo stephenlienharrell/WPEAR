@@ -43,7 +43,7 @@ class WeatherData(object):
 
         print "Starting data downloads"
 
-        if not os.path.exists(self.temp_directory): 
+        if not os.path.exists(self.temp_directory):
             os.makedirs(self.temp_directory)
 
 
