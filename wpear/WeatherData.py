@@ -243,7 +243,8 @@ def _doVisualization(file_name, out_file):
 
 def _doCompareVisualization(obs_file, fcast_file, out_file):
     visualizer = DataVisualizer.DataVisualizer()
-    grib_msg = DataComparator.DataComparator(obs_file, fcast_file)
+    dcomp = DataComparator.DataComparator()
+    grib_msg = dcomp.difference(obs_file, fcast_file)
     visualizer.Heatmap(grib_msg, out_file)
     print "Visualizing " + out_file + " is complete"
 
