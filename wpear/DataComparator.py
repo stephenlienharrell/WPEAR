@@ -15,7 +15,7 @@ class DataComparator:
     arr = temp15_arr_f.values - temp15_arr_o.values
     ret_file = pygrib.open(forecast_file)
     gobj = ret_file.select(name='2 metre temperature')[0]
-    gobj.values=numpy.array(arr)
+    gobj.values=np.array(arr)
     return gobj
 
 
