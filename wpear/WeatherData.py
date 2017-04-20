@@ -32,6 +32,9 @@ class WeatherData(object):
         self.temp_directory =  options.download_dir + '/' + self.tag + '/' + date.strftime('%Y%m%d') 
         self.compared_viz_file_format = '{obs_tag}.{obs_date}.{obs_extra_info}_{fcast_tag}.{fcast_date}.{fcast_extra_info}f{fcast_number}_{var}.{domain}.{comp_tag}.png'
         self.compared_viz_directory = self.web_directory + '/%Y/%m/%d/{obs_tag}.{fcast_tag}.{comp_tag}'
+        
+        self.compared_viz_animated_file_format = '{obs_tag}.{obs_extra_info}_{fcast_tag}.{fcast_extra_info}_{var}.{domain}.{comp_tag}.gif'
+        self.gap_hour = 1
 
         self.threads = []
         self.thread_count = 0
@@ -47,7 +50,6 @@ class WeatherData(object):
             os.makedirs(self.temp_directory)
 
 
-       
         for index, file_name in enumerate(self.files_to_download):
             converted_file = self.converted_files[index]
             if os.path.exists(converted_file):
@@ -114,7 +116,7 @@ class WeatherData(object):
             print "This function only works for forecasts"
             return
 
-        gobj_list = []
+        # gobj_list = []
         for i, file_list in enumerate(self.converted_files_by_hour):
             output_name = self.forecast_animation_files[i]
             if os.path.exists(output_name):
@@ -127,6 +129,75 @@ class WeatherData(object):
         return output_name.replace("t23z", "t00z") # horrible coding for demo
 
 
+    def VisualizeAnimatedDifference(self, forecast, comparator_tag):
+        print "Start Animated Observation vs Forecast Visualization"
+        needed_vars = ['vars', 'converted_files', 'compared_viz_directory', 'tag', 'web_directory', 
+                'compared_viz_animated_file_format', 'domain', 'extra_info', 'gap_hour']
+        self._CheckVars('VisualizeDifference', needed_vars)
+        fcast_needed_vars = ['tag', 'max_fcast', 'vars', 'domain', 'output_filename_format', 'extra_info']
+        forecast._CheckVars('VisualizeDifference', fcast_needed_vars)
+        if not self.obs:
+            raise ValueError('Must call VisualDifference on observations only')
+        obs_files = []
+        fcast_files = []
+
+        for obs_file in self.converted_files:
+            obs_date = self._GetTimeOfObs(obs_file)
+            out_dir = obs_date.strftime(self.compared_viz_directory)
+            out_dir = out_dir.format(obs_tag=self.tag, fcast_tag=forecast.tag, comp_tag=comparator_tag)
+            if not os.path.exists(out_dir):
+                os.makedirs(out_dir)
+
+            if not os.path.exists(obs_file):
+                continue
+            print "converted file %s and chose date %s"%(obs_file, obs_date)
+            fcast_date = obs_date - datetime.timedelta(hours=self.gap_hour)
+
+            gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
+            fcast_file =  (self.web_directory + fcast_date.strftime(forecast.local_directory_date_format) + 
+                        '/' + forecast.output_filename_format.format(
+                        time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
+                        domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
+
+
+            print "%s exits? %r"%(fcast_file, os.path.exists(fcast_file))
+            if not os.path.exists(fcast_file):
+                # What if the wanted fcast_file not exist
+                continue
+
+            # Append all the compared files
+            fcast_files.append(fcast_file)
+            obs_files.append(obs_file)
+
+        
+        ## TODO FIX VAR EVERYWHERE INCLUDING HERE
+        out_file = out_dir + '/' + self.compared_viz_animated_file_format.format(
+                    obs_tag=self.tag, 
+                    obs_extra_info=self.extra_info, 
+                    fcast_tag=forecast.tag, 
+                    fcast_extra_info=forecast.extra_info,
+                    var='2MTK', 
+                    domain=self.domain,
+                    comp_tag=comparator_tag)
+
+        #     if os.path.exists(out_file):
+        #         continue
+
+        #     self._addToThreadPool(_doCompareAnimatedVisualization, (obs_file, fcast_file, out_file))
+        #     self._waitForThreadPool()
+
+        # self._waitForThreadPool(thread_max=0)
+        
+        #Question: need threading? only generate one gif for an hour
+
+        #Issue: what if there's error, missed needed fcast_files?
+        print "Generate the anim viz with %d frame(s)"%(len(obs_files))
+
+        _doCompareAnimatedVisualization(obs_files, fcast_files, out_file)
+
+        return out_file
+
+    
     def VisualizeDifference(self, forecast, comparator_tag):
         print "Starting Data Comparison"
         needed_vars = ['vars', 'converted_files', 'compared_viz_directory', 'tag', 'web_directory', 
@@ -227,8 +298,7 @@ def _doDownload(url, file_directory, temp_directory):
 def _doConversion(wgrib_path, egrep_path, input_file, temp_directory, var_list, minlat,
         maxlat, minlon, maxlon, converted_file):
     dc = DataConverter.DataConverter(wgrib_path, egrep_path)
-    dc.extractMessagesAndSubsetRegion(input_file, var_list, temp_directory, minlat,
-            maxlat, minlon, maxlon, converted_file)
+    dc.extractMessagesAndSubsetRegion(input_file, var_list, temp_directory, minlat,maxlat, minlon, maxlon, converted_file)
     print "Conversion completed for " + input_file
 
 
@@ -242,6 +312,7 @@ def _doVisualization(file_name, out_file):
 
 
 def _doCompareVisualization(obs_file, fcast_file, out_file):
+    print "called compared viz func"
     visualizer = DataVisualizer.DataVisualizer()
     dcomp = DataComparator.DataComparator()
     grib_msg = dcomp.difference(obs_file, fcast_file)
@@ -259,4 +330,20 @@ def _doForecastAnimation(fcast_files, output_name):
     dv = DataVisualizer.DataVisualizer()
     dv.AnimatedHeatMap(gobj_list, output_name)
     print "Forecast Animation " + output_name + " is complete"
+
+
+def _doCompareAnimatedVisualization(obs_files, fcast_files, out_file):
+    gobj_list = []
+    dv = DataVisualizer.DataVisualizer()
+    dcomp = DataComparator.DataComparator()
+    count = 0
+    while count < len(obs_files):
+        grib_msg = dcomp.difference(obs_files[count], fcast_files[count])
+        gobj_list.append(grib_msg)
+        count += 1
+
+    dv.AnimatedHeatMap(gobj_list, out_file)
+    print "Comparison Animation " + out_file + " is complete" 
+
+
 

@@ -51,6 +51,7 @@ class RTMAObservations(WeatherData.WeatherData):
         if testing:
             self.files_to_download = [self.download_file_name.format(gmt_plus=0)]
             self.files_to_download.append(self.download_file_name.format(gmt_plus=1))
+            self.files_to_download.append(self.download_file_name.format(gmt_plus=2))
 
         self.var_lookup_table = {}
         self.var_lookup_table['2MTK'] = 'TMP:2 m above ground'
