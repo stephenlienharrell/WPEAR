@@ -35,7 +35,7 @@ def StartRun(options):
         
         # website        
         wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
-        wg.addSidebarToLandingPage()
+        wg.runWebManager()
         wg.showWebsite()
         return
 
