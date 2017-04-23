@@ -12,7 +12,11 @@ class WebsiteGenerator:
     self.landing_page = open(self.landing_file, 'w+')
     self.sidebar_page = open(self.sidebar_file, 'w+')
     self.webdir = webdir
-    
+
+
+  def runWebManager(self):
+    self.addSidebarToLandingPage()
+
 
   def showWebsite(self):
     webbrowser.open_new(self.landing_file)
