@@ -14,33 +14,6 @@ def StartRun(options):
     now = datetime.datetime.utcnow()
     one_day_delta = datetime.timedelta(days=1)
 
-    if options.testing:
-        hrrr_fcast = HRRRSurfaceForecasts.HRRRSurfaceForecasts(now - one_day_delta,
-                VARS, DOMAIN, options, testing=options.testing)
-        
-        hrrr_fcast.DownloadData()
-        hrrr_fcast.ConvertData()
-        hrrr_fcast.CleanupDownloads()
-        hrrr_fcast.VisualizeData()
-        hrrr_fcast.VisualizeAnimatedForecast()
-#        viz_anim_fcast = 
-        
-        rtma_obs = RTMAObservations.RTMAObservations(now - one_day_delta,
-                VARS, DOMAIN, options, testing=options.testing)
-
-        rtma_obs.DownloadData()
-        rtma_obs.ConvertData()
-        rtma_obs.CleanupDownloads()
-        rtma_obs.VisualizeData()
-        viz_diff_obs = rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
-        rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
-        
-        # website        
-        wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
-        wg.runWebManager()
-        wg.showWebsite()
-        return
-
     hrrr_dates = [now, now - one_day_delta]
     for date in hrrr_dates:
         print 'Starting HRRR Forecasts for ' + date.strftime('%Y%m%d')
@@ -64,6 +37,9 @@ def StartRun(options):
         rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
         rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
         
+        wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
+        wg.runWebManager()
+        wg.showWebsite()
 
 #    for date in hrrr_dates:
 #        print 'Starting HRRR Observations for ' + date.strftime('%Y%m%d')
