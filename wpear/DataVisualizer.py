@@ -4,6 +4,8 @@ import os
 import sys
 import pygrib
 import random
+import string
+import shutil
 import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
@@ -151,7 +153,7 @@ class DataVisualizer():
         plt.close(fig)
 
 
-    def AnimatedHeatMap(self, grib_objects, file_name):
+    def AnimatedHeatMap(self, grib_objects, file_name, temp_dir):
         """Generate Animated Heatmap with Data from grib_objects
         grib_objects:   a list of grib objects
         file_name:      a string representing the name of generated picture
@@ -169,26 +171,33 @@ class DataVisualizer():
             count += 1
 
         count = 0
-        f = open('file_list.txt', 'w')
+        working_dir = '%s/%s%s' % (temp_dir, 'frames', ''.join(random.choice(string.lowercase) for x in range(6)))
+        file_list_file = 'file_list.txt'
+        if not os.path.exists(working_dir):
+            os.makedirs(working_dir)
+        f = open('%s/%s' % (working_dir, file_list_file), 'w')
+        try: 
+            # Generate each frame one by one
+            while (count < len(grib_objects)):
+                filenames.append('pic_' + str(count) + '.png')
+                f.write("%s\n" % filenames[count])
+                self.Frame(grib_objects[count], "%s/%s" % (working_dir, filenames[count]), vmin, vmax)
+                # print 'Generated ' + filenames[count]
+                count += 1
+        finally:
+          f.close()
 
-        # Generate each frame one by one
-        if not os.path.exists('frames/'):
-            os.makedirs('frames')
-        while (count < len(grib_objects)):
-            filenames.append('pic_' + str(count) + '.png')
-            f.write("%s\n" % filenames[count])
-            self.Frame(grib_objects[count], filenames[count], vmin, vmax)
-            # print 'Generated ' + filenames[count]
-            count += 1
-        f.close()
 
         # Convert series of static viualization to animated file
-        os.system("convert -delay 60 @file_list.txt {}".format(file_name))
+        os.system("cd {}; convert -delay 60 @{} {}".format(working_dir, file_list_file, 'out.gif'))
+
+        os.rename('%s/out.gif' % working_dir, file_name)
 
         # Remove the tmp files
-        os.remove('file_list.txt')
-        for f in filenames:
-            os.remove(f)
+#        os.remove('file_list.txt')
+#        for f in filenames:
+#            os.remove(f)
+        shutil.rmtree(working_dir)
 
         # plt.close(fig)
 
