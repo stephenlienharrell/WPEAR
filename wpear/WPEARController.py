@@ -22,7 +22,8 @@ def StartRun(options):
         hrrr_fcast.ConvertData()
         hrrr_fcast.CleanupDownloads()
         hrrr_fcast.VisualizeData()
-        viz_anim_fcast = hrrr_fcast.VisualizeAnimatedForecast()
+        hrrr_fcast.VisualizeAnimatedForecast()
+#        viz_anim_fcast = 
         
         rtma_obs = RTMAObservations.RTMAObservations(now - one_day_delta,
                 VARS, DOMAIN, options, testing=options.testing)
@@ -32,6 +33,7 @@ def StartRun(options):
         rtma_obs.CleanupDownloads()
         rtma_obs.VisualizeData()
         viz_diff_obs = rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
+        rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
         
         # website        
         wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
@@ -60,6 +62,7 @@ def StartRun(options):
         rtma_obs.CleanupDownloads()
         rtma_obs.VisualizeData()
         rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
+        rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
         
 
 #    for date in hrrr_dates:
