@@ -120,11 +120,55 @@ class WeatherData(object):
             if os.path.exists(output_name):
                 continue
 
-            self._addToThreadPool(_doForecastAnimation, (file_list, output_name))
+            self._addToThreadPool(_doForecastAnimation, (file_list, output_name, self.temp_directory))
             self._waitForThreadPool()
 
         self._waitForThreadPool(thread_max=0)
-        return output_name.replace("t23z", "t00z") # horrible coding for demo
+
+
+    def VisualizeStandardDeviation(self, forecast):
+        print "Starting Forecast Deviation from Observation Visualization"
+        gobj_list = []
+
+        for i, obs_file in enumerate(self.converted_files):
+
+            if not os.path.exists(obs_file):
+                continue
+            fcast_files = []
+            comparator_tag = 'STDDEV'
+
+            obs_date = self._GetTimeOfObs(obs_file)
+
+            out_dir = obs_date.strftime(self.compared_viz_directory)
+            out_dir = out_dir.format(obs_tag=self.tag, fcast_tag=forecast.tag, comp_tag=comparator_tag)
+
+            output_name = out_dir + '/' + self.output_filename_format_stddev_viz.format(
+                time=obs_date.strftime(self.date_format) + obs_date.strftime('_t%Hz'), 
+                obs_extra_info=self.extra_info, fcast_tag=forecast.tag, 
+                vars='2MTK', domain=self.domain, comp_tag=comparator_tag)
+
+            self.visualization_stddev_files.append(output_name)
+
+            if os.path.exists(output_name):
+                continue
+
+            for x in range(1, forecast.max_fcast + 1, forecast.hours_between_fcasts):
+                fcast_date = obs_date - datetime.timedelta(hours=x)
+
+                gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
+                fcast_file =  (self.web_directory + fcast_date.strftime(forecast.local_directory_date_format) + 
+                        '/' + forecast.output_filename_format.format(
+                        time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
+                        domain=forecast.domain, forecast_number=x, extra_info=forecast.extra_info))
+
+                if not os.path.exists(fcast_file):
+                    break
+
+                fcast_files.append(fcast_file)
+
+            self._addToThreadPool(_doStandardDeviationVisualization, (obs_file, fcast_files, output_name))
+            self._waitForThreadPool()
+
 
 
     def VisualizeDifference(self, forecast, comparator_tag):
@@ -166,6 +210,7 @@ class WeatherData(object):
                         fcast_date=fcast_date.strftime(self.date_format) + fcast_date.strftime('_t%Hz'),
                         fcast_number=x, fcast_extra_info=forecast.extra_info, var='2MTK', domain=self.domain,
                         comp_tag=comparator_tag)
+                self.visualization_difference_files.append(out_file)
 
                 if os.path.exists(out_file):
                     continue
@@ -240,6 +285,12 @@ def _doVisualization(file_name, out_file):
     visualizer.Heatmap(grib_msg, out_file)
     print "Visualizing " + out_file + " is complete"
 
+def _doStandardDeviationVisualization(observed_file, forecast_files, output_name):
+    dc = DataComparator.DataComparator()
+    var = '2 metre temperature'
+    arr = dc.stddev(forecast_file_list, observed_file, var)
+    dv = DataVisualizer.DataVisualizer()
+    dv.scatterBar(arr, observed_file, output_name)
 
 def _doCompareVisualization(obs_file, fcast_file, out_file):
     visualizer = DataVisualizer.DataVisualizer()
@@ -248,7 +299,7 @@ def _doCompareVisualization(obs_file, fcast_file, out_file):
     print "Visualizing " + out_file + " is complete"
 
 
-def _doForecastAnimation(fcast_files, output_name):
+def _doForecastAnimation(fcast_files, output_name, temp_dir):
     gobj_list = []
     for fcast in fcast_files:
         if not os.path.exists(fcast):
@@ -256,6 +307,6 @@ def _doForecastAnimation(fcast_files, output_name):
         gobj_list.append(pygrib.open(fcast).select(name='2 metre temperature')[0])
 
     dv = DataVisualizer.DataVisualizer()
-    dv.AnimatedHeatMap(gobj_list, output_name)
+    dv.AnimatedHeatMap(gobj_list, output_name, temp_dir)
     print "Forecast Animation " + output_name + " is complete"
 

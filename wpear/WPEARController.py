@@ -21,7 +21,8 @@ def StartRun(options):
         hrrr_fcast.ConvertData()
         hrrr_fcast.CleanupDownloads()
         hrrr_fcast.VisualizeData()
-        viz_anim_fcast = hrrr_fcast.VisualizeAnimatedForecast()
+        hrrr_fcast.VisualizeAnimatedForecast()
+#        viz_anim_fcast = 
         
         rtma_obs = RTMAObservations.RTMAObservations(now - one_day_delta,
                 VARS, DOMAIN, options, testing=options.testing)
@@ -30,6 +31,7 @@ def StartRun(options):
         rtma_obs.CleanupDownloads()
         rtma_obs.VisualizeData()
         viz_diff_obs = rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
+        rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
         
         # website
         vizlist = []
@@ -39,7 +41,7 @@ def StartRun(options):
                 vizlist.append([file, 'tag = {}'.format(file.split('/')[-1].split('.heatmap.png')[0])])
                 break
         vizlist.append('SECTION: Dynamic Forecasts')
-        vizlist.append([viz_anim_fcast, 'tag = {}'.format(viz_anim_fcast.split('/')[-1].split('.heatmap_anim.gif')[0])])
+#        vizlist.append([viz_anim_fcast, 'tag = {}'.format(viz_anim_fcast.split('/')[-1].split('.heatmap_anim.gif')[0])])
         vizlist.append('SECTION: Observations')
         for file in rtma_obs.visualization_heatmap_files:
             if os.path.exists(file):
@@ -71,6 +73,7 @@ def StartRun(options):
         rtma_obs.CleanupDownloads()
         rtma_obs.VisualizeData()
         rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
+        rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
         
 
 #    for date in hrrr_dates:
