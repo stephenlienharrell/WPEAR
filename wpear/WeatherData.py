@@ -41,7 +41,7 @@ class WeatherData(object):
         needed_vars = ['url', 'url_directory', 'files_to_download', 'converted_files']
         self._CheckVars('DownloadData', needed_vars)
 
-        print "Starting data downloads"
+        print "Starting data downloads and data conversion"
 
         if not os.path.exists(self.temp_directory):
             os.makedirs(self.temp_directory)
@@ -54,39 +54,18 @@ class WeatherData(object):
                 continue
 
             file_directory = self.url_directory + file_name
+            input_file = self.temp_directory + '/' + file_name
 
-            self._addToThreadPool(_doDownload, (self.url, file_directory, self.temp_directory))
+            self._addToThreadPool(_doDownload, (self.url, file_directory, self.temp_directory,
+                self.wgrib_path, self.egrep_path, input_file, 
+                self.var_lookup_table.values(), MINLAT, MAXLAT, MINLON, MAXLON,
+                converted_file, self.temp_directory + '/converted'))
             self._waitForThreadPool()
 
 
         self._waitForThreadPool(thread_max=0)
 
         
-    def ConvertData(self):
-        needed_vars = ['files_to_download', 'local_directory', 'converted_files', 'var_lookup_table']
-        self._CheckVars('ConvertData', needed_vars)
-
-        print "Starting data conversion"
-
-        if not os.path.exists(self.local_directory):
-            os.makedirs(self.local_directory)
-
-        converted_files = []
-        for index, file_name in enumerate(self.files_to_download):
-            input_file = self.temp_directory + '/' + file_name
-            if not os.path.exists(input_file):
-                continue
-            converted_file = self.converted_files[index]
-            if os.path.exists(converted_file):
-                continue
-            self._addToThreadPool(_doConversion, (self.wgrib_path, self.egrep_path, input_file,
-                self.temp_directory + '/converter', self.var_lookup_table.values(), MINLAT, MAXLAT, MINLON, MAXLON,
-                converted_file))
-            self._waitForThreadPool()
-
-        self._waitForThreadPool(thread_max=0)
-    
-
     def VisualizeData(self):
         needed_vars = ['vars', 'visualization_heatmap_files', 'converted_files']
         self._CheckVars('VisualizeData', needed_vars)
@@ -152,6 +131,7 @@ class WeatherData(object):
             if os.path.exists(output_name):
                 continue
 
+            failed = False
             for x in range(1, forecast.max_fcast + 1, forecast.hours_between_fcasts):
                 fcast_date = obs_date - datetime.timedelta(hours=x)
 
@@ -162,14 +142,15 @@ class WeatherData(object):
                         domain=forecast.domain, forecast_number=x, extra_info=forecast.extra_info))
 
                 if not os.path.exists(fcast_file):
+                    failed = True
                     break
 
                 fcast_files.append(fcast_file)
+            if failed:
+                continue
 
             self._addToThreadPool(_doStandardDeviationVisualization, (obs_file, fcast_files, output_name))
             self._waitForThreadPool()
-
-
 
     def VisualizeDifference(self, forecast, comparator_tag):
         print "Starting Data Comparison"
@@ -255,7 +236,9 @@ class WeatherData(object):
                 count += 1
 
 
-def _doDownload(url, file_directory, temp_directory):
+def _doDownload(url, file_directory, temp_directory, wgrib_path, egrep_path,
+                input_file, var_list, minlat, maxlat, minlon, maxlon, converted_file,
+                convert_temp_directory):
     try:
         downloader = DataDownloader.DataDownloader()
         downloader.download(url, file_directory, temp_directory)
@@ -268,14 +251,10 @@ def _doDownload(url, file_directory, temp_directory):
         return
     print "Download completed for %s" % file_directory
 
-
-def _doConversion(wgrib_path, egrep_path, input_file, temp_directory, var_list, minlat,
-        maxlat, minlon, maxlon, converted_file):
     dc = DataConverter.DataConverter(wgrib_path, egrep_path)
-    dc.extractMessagesAndSubsetRegion(input_file, var_list, temp_directory, minlat,
+    dc.extractMessagesAndSubsetRegion(input_file, var_list, convert_temp_directory, minlat,
             maxlat, minlon, maxlon, converted_file)
     print "Conversion completed for " + input_file
-
 
 def _doVisualization(file_name, out_file):
     visualizer = DataVisualizer.DataVisualizer()
@@ -288,7 +267,8 @@ def _doVisualization(file_name, out_file):
 def _doStandardDeviationVisualization(observed_file, forecast_files, output_name):
     dc = DataComparator.DataComparator()
     var = '2 metre temperature'
-    arr = dc.stddev(forecast_file_list, observed_file, var)
+    print str(forecast_files) + observed_file
+    arr = dc.stddev(forecast_files, observed_file, var)
     dv = DataVisualizer.DataVisualizer()
     dv.scatterBar(arr, observed_file, output_name)
 

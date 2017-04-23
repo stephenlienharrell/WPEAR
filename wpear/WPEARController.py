@@ -20,7 +20,6 @@ def StartRun(options):
         hrrr_fcast = HRRRSurfaceForecasts.HRRRSurfaceForecasts(date,
                 VARS, DOMAIN, options, testing=options.testing)
         hrrr_fcast.DownloadData()
-        hrrr_fcast.ConvertData()
         hrrr_fcast.CleanupDownloads()
         hrrr_fcast.VisualizeData()
         hrrr_fcast.VisualizeAnimatedForecast()
@@ -31,7 +30,6 @@ def StartRun(options):
         rtma_obs = RTMAObservations.RTMAObservations(date,
                 VARS, DOMAIN, options, testing=options.testing)
         rtma_obs.DownloadData()
-        rtma_obs.ConvertData()
         rtma_obs.CleanupDownloads()
         rtma_obs.VisualizeData()
         rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
