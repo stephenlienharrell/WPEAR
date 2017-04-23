@@ -1,6 +1,5 @@
 import pygrib
 import numpy as np
-import DataVisualizer
 
 
 class DataComparator:
@@ -39,16 +38,3 @@ class DataComparator:
 
     # print arr
     return arr
-
-
-
-# dc = DataComparator()
-# observed_file = 'sourceFileDownloads/hrrr.t15z.wrfsfcf00.grib2'
-# # forecast_file_list = ['sourceFileDownloads/hrrr.t09z.wrfsfcf06.grib2', 'sourceFileDownloads/hrrr.t10z.wrfsfcf05.grib2', 'sourceFileDownloads/hrrr.t11z.wrfsfcf04.grib2', 'sourceFileDownloads/hrrr.t12z.wrfsfcf03.grib2', 'sourceFileDownloads/hrrr.t13z.wrfsfcf02.grib2', 'sourceFileDownloads/hrrr.t14z.wrfsfcf01.grib2'] 
-# forecast_file_list = ['sourceFileDownloads/hrrr.t14z.wrfsfcf01.grib2', 'sourceFileDownloads/hrrr.t13z.wrfsfcf02.grib2', 'sourceFileDownloads/hrrr.t12z.wrfsfcf03.grib2', 'sourceFileDownloads/hrrr.t11z.wrfsfcf04.grib2', 'sourceFileDownloads/hrrr.t10z.wrfsfcf05.grib2', 'sourceFileDownloads/hrrr.t09z.wrfsfcf06.grib2']
-
-# var = '2 metre temperature'
-# arr = dc.stddev(forecast_file_list, observed_file, var)
-# print arr
-# dv = DataVisualizer.DataVisualizer()
-# dv.scatterBar(arr, observed_file, 'pic2.png')
