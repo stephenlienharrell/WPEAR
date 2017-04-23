@@ -2,8 +2,8 @@
 import webbrowser
 import os.path
 
-def showWebsite(item_list):
-    dir = parseDirectory('web/', '')
+def showWebsite(file_dir, item_list):
+    dir = parseDirectory(file_dir, next(item for item in item_list if len(item)==2)[0])
     dir = os.path.normpath(dir + 'day.html')
     file_fullpath = os.path.realpath(dir)
     html_file = open(file_fullpath, 'w+')
@@ -34,7 +34,7 @@ def showWebsite(item_list):
     webbrowser.open_new(file_fullpath)
 
 def parseDirectory(webdir, file_name):
-    file_name = "hrrr_fcast.20170413_t00z.2MT_DPT.IND90k.wrfsfcf01.grb2"
+    #file_name = "hrrr_fcast.20170413_t00z.2MT_DPT.IND90k.wrfsfcf01.grb2"
     directory = webdir
     if directory.endswith('/') == False:
         directory += '/'
@@ -50,4 +50,4 @@ def parseDirectory(webdir, file_name):
     directory+= year + '/' + month + '/' + day + '/'
     return directory
 
-#showWebsite(['SECTION:Forecast', ['giphy.gif', 'file_1'], ['giphy.gif', 'file_2'], ['giphy.gif', 'file_3'], ['giphy.gif', 'file_4'],['giphy.gif', 'file_1'], ['giphy.gif', 'file_2'], ['giphy.gif', 'file_3'], ['giphy.gif', 'file_4'],'SECTION:Observed'])
+showWebsite('web/',['SECTION:Forecast', ['giphy.gif', 'file_1'], ['giphy.gif', 'file_2'], ['giphy.gif', 'file_3'], ['giphy.gif', 'file_4'],['giphy.gif', 'file_1'], ['giphy.gif', 'file_2'], ['giphy.gif', 'file_3'], ['giphy.gif', 'file_4'],'SECTION:Observed'])
