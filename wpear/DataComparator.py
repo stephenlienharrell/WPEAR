@@ -1,5 +1,6 @@
 import pygrib
 import numpy as np
+import DataVisualizer
 
 
 class DataComparator:
@@ -15,11 +16,12 @@ class DataComparator:
     arr = temp15_arr_f.values - temp15_arr_o.values
     ret_file = pygrib.open(forecast_file)
     gobj = ret_file.select(name='2 metre temperature')[0]
-    gobj.values=numpy.array(arr)
+    gobj.values=np.array(arr)
     return gobj
 
 
   def stddev(self, forecast_file_list, observed_file, var):
+    'forecast_file_list must be in descending order of times e.g. 11, 10, 9 with obs = 12'
     arr = [[0 for i in range(len(forecast_file_list))] for j in range(3)]
     
     gfile_o = pygrib.open(observed_file)
@@ -40,4 +42,13 @@ class DataComparator:
 
 
 
-#DataComparator('hrrr.t15z.wrfsubhf01.grib2', 'hrrr.t15z.wrfsubhf01.grib2')
+# dc = DataComparator()
+# observed_file = 'sourceFileDownloads/hrrr.t15z.wrfsfcf00.grib2'
+# # forecast_file_list = ['sourceFileDownloads/hrrr.t09z.wrfsfcf06.grib2', 'sourceFileDownloads/hrrr.t10z.wrfsfcf05.grib2', 'sourceFileDownloads/hrrr.t11z.wrfsfcf04.grib2', 'sourceFileDownloads/hrrr.t12z.wrfsfcf03.grib2', 'sourceFileDownloads/hrrr.t13z.wrfsfcf02.grib2', 'sourceFileDownloads/hrrr.t14z.wrfsfcf01.grib2'] 
+# forecast_file_list = ['sourceFileDownloads/hrrr.t14z.wrfsfcf01.grib2', 'sourceFileDownloads/hrrr.t13z.wrfsfcf02.grib2', 'sourceFileDownloads/hrrr.t12z.wrfsfcf03.grib2', 'sourceFileDownloads/hrrr.t11z.wrfsfcf04.grib2', 'sourceFileDownloads/hrrr.t10z.wrfsfcf05.grib2', 'sourceFileDownloads/hrrr.t09z.wrfsfcf06.grib2']
+
+# var = '2 metre temperature'
+# arr = dc.stddev(forecast_file_list, observed_file, var)
+# print arr
+# dv = DataVisualizer.DataVisualizer()
+# dv.scatterBar(arr, observed_file, 'pic2.png')
