@@ -63,7 +63,8 @@ class WebsiteGenerator:
           break
         days.sort()
         for day in days:
-          self._writeDay(day, monthdir + '/' + day + '/day.html')  
+          daylink =  monthdir + '/' + day + '/day.html'
+          self._writeDay(day, daylink.split('/', 1)[-1])  
 
         self._writeMonthEnd()
       self._writeYearEnd()
@@ -192,8 +193,8 @@ class WebsiteGenerator:
     return files
 
 
-  def generateDailyPage(self, file_dir, item_list):
-    dir = parseDirectory(file_dir, next(item for item in item_list if len(item)==2)[0])
+  def generateDailyPage(self, item_list):
+    dir = self.parseDirectory(self.webdir, next(item for item in item_list if len(item)==2)[0])
     dir = os.path.normpath(dir + 'day.html')
     file_fullpath = os.path.realpath(dir)
     html_file = open(file_fullpath, 'w+')
@@ -220,8 +221,6 @@ class WebsiteGenerator:
     file_end = """</body></html>"""
     html_file.write(file_end)
     html_file.close()
-
-    webbrowser.open_new(file_fullpath)
 
 
   def parseDirectory(self, webdir, file_name):
