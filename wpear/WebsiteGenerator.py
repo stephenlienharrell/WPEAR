@@ -242,6 +242,103 @@ class WebsiteGenerator:
       return directory
 
 
+  def generateHomePage(self, item_list):
+    # Can make different types of viz with different colors
+    file_head = """
+        <html>
+          <head>
+              <style type="text/css">
+                  body {
+                      background-color: #EAEDED
+                  }
+                  ul.rig {
+                      list-style: none;
+                      font-size: 0px;
+                      margin-left: -2.5%; /* should match li left margin */
+                  }
+                  ul.rig li {
+                      display: inline-block;
+                      padding: 10px;
+                      font-size: 16px;
+                      font-size: 1rem;
+                      vertical-align: top;
+                      box-sizing: border-box;
+                      -moz-box-sizing: border-box;
+                      -webkit-box-sizing: border-box;
+                  }
+                  ul.rig li img {
+                      max-width: 100%;
+                      height: auto;
+                      margin: 0 0 10px;
+                  }
+                  ul.rig li h3 {
+                      margin: 0 0 5px;
+                  }
+                  ul.rig li p {
+                      font-size: .9em;
+                      line-height: 1.5em;
+                      color: #999;
+                  }
+
+                  /* class for 2 columns */
+                  ul.rig.columns-2 li {
+                      width: 47.5%; /* this value + 2.5 should = 50% */
+                  }
+                  /* class for 3 columns */
+                  ul.rig.columns-3 li {
+                      width: 30.83%; /* this value + 2.5 should = 33% */
+                  }
+                  /* class for 4 columns */
+                  ul.rig.columns-4 li {
+                      width: 22.5%; /* this value + 2.5 should = 25% */
+                  }
+                   
+                  @media (max-width: 480px) {
+                      ul.grid-nav li {
+                          display: block;
+                          margin: 0 0 5px;
+                      }
+                      ul.grid-nav li a {
+                          display: block;
+                      }
+                      ul.rig {
+                          margin-left: 0;
+                      }
+                      ul.rig li {
+                          width: 100% !important; /* over-ride all li styles */
+                          margin: 0 0 20px;
+                      }
+                  }
+                  
+              </style>
+          </head>
+          <body>
+              <center>
+              <h1>
+                  <br>
+                  WPEAR
+              </h1>
+              <ul class='rig columns-2'>"""
+
+    self.landing_page.write(file_head)
+    image_titles = ['Observation Visualization', 
+                    'Forcast Visualization', 
+                    'Standard Deviation Visualization', 
+                    'Observation vs Forcast Visualization']
+
+    self.landing_page.write("<li><img src='" + item_list[0] + "' /><h3>"
+        + image_titles[0] + "</h3></li>")
+    self.landing_page.write("<li><img src='" + item_list[1] + "' /><h3>"
+        + image_titles[1] + "</h3></li></ul>")
+    self.landing_page.write("<ul class='rig columns-2'>")
+    self.landing_page.write("<li><img src='" + item_list[2] + "' /><h3>"
+        + image_titles[2] + "</h3></li>")
+    self.landing_page.write("<li><img src='" + item_list[3] + "' /><h3>"
+        + image_titles[3] + "</h3></li></ul>")
+
+    file_end = """</center></body></html>"""
+    self.landing_page.write(file_end)
+    self.landing_page.close()
 
 
 ################################### Test run  script ####################################
