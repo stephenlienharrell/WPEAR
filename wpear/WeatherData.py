@@ -187,10 +187,6 @@ class WeatherData(object):
         #     self._waitForThreadPool()
 
         # self._waitForThreadPool(thread_max=0)
-        
-        #Question: need threading? only generate one gif for an hour
-
-        #Issue: what if there's error, missed needed fcast_files?
         print "Generate the anim viz with %d frame(s)"%(len(obs_files))
 
         _doCompareAnimatedVisualization(obs_files, fcast_files, out_file)
@@ -305,14 +301,12 @@ def _doConversion(wgrib_path, egrep_path, input_file, temp_directory, var_list, 
 def _doVisualization(file_name, out_file):
     visualizer = DataVisualizer.DataVisualizer()
     grib_loaded = pygrib.open(file_name)
-    #for var in self.vars:
     grib_msg = grib_loaded.select(name='2 metre temperature')[0]
     visualizer.Heatmap(grib_msg, out_file)
     print "Visualizing " + out_file + " is complete"
 
 
 def _doCompareVisualization(obs_file, fcast_file, out_file):
-    print "called compared viz func"
     visualizer = DataVisualizer.DataVisualizer()
     dcomp = DataComparator.DataComparator()
     grib_msg = dcomp.difference(obs_file, fcast_file)

@@ -69,19 +69,97 @@ class WebsiteGenerator:
 
   def showHomePage(self, item_list):
     # Can make different types of viz with different colors
-    file_head = """<html><head>
-    <title>WPEAR</title>
-    <body style="background-color: #EAEDED; height: 100%"><center><h1><br>WPEAR</h1>"""
-    self.landing_main.write(file_head)
+    file_head = """
+        <html>
+          <head>
+              <style type="text/css">
+                  body {
+                      background-color: #EAEDED
+                  }
+                  ul.rig {
+                      list-style: none;
+                      font-size: 0px;
+                      margin-left: -2.5%; /* should match li left margin */
+                  }
+                  ul.rig li {
+                      display: inline-block;
+                      padding: 10px;
+                      font-size: 16px;
+                      font-size: 1rem;
+                      vertical-align: top;
+                      box-sizing: border-box;
+                      -moz-box-sizing: border-box;
+                      -webkit-box-sizing: border-box;
+                  }
+                  ul.rig li img {
+                      max-width: 100%;
+                      height: auto;
+                      margin: 0 0 10px;
+                  }
+                  ul.rig li h3 {
+                      margin: 0 0 5px;
+                  }
+                  ul.rig li p {
+                      font-size: .9em;
+                      line-height: 1.5em;
+                      color: #999;
+                  }
 
-    for item in item_list:
-      if 'SECTION:' in item:
-        if item != item_list[0]:
-            self.landing_main.write("""</div>""")
-        self.landing_main.write("""<br><div id = """ + item.split(':')[1] +""""><h2><p>""" +  item.split(':')[1] + """</p></h2>""")
-      elif len(item) > 1:
-        self.landing_main.write("""<img src='""" + item[0] + """' alt='""" + item[1] + """'><br>""")
-        self.landing_main.write("""<br>""")
+                  /* class for 2 columns */
+                  ul.rig.columns-2 li {
+                      width: 47.5%; /* this value + 2.5 should = 50% */
+                  }
+                  /* class for 3 columns */
+                  ul.rig.columns-3 li {
+                      width: 30.83%; /* this value + 2.5 should = 33% */
+                  }
+                  /* class for 4 columns */
+                  ul.rig.columns-4 li {
+                      width: 22.5%; /* this value + 2.5 should = 25% */
+                  }
+                   
+                  @media (max-width: 480px) {
+                      ul.grid-nav li {
+                          display: block;
+                          margin: 0 0 5px;
+                      }
+                      ul.grid-nav li a {
+                          display: block;
+                      }
+                      ul.rig {
+                          margin-left: 0;
+                      }
+                      ul.rig li {
+                          width: 100% !important; /* over-ride all li styles */
+                          margin: 0 0 20px;
+                      }
+                  }
+                  
+              </style>
+          </head>
+          <body>
+              <center>
+              <h1>
+                  <br>
+                  WPEAR
+              </h1>
+              <ul class='rig columns-2'>"""
+
+    self.landing_main.write(file_head)
+    image_titles = ['Observation Visualization', 
+                    'Forcast Visualization', 
+                    'Standard Deviation Visualization', 
+                    'Observation vs Forcast Visualization']
+
+    self.landing_main.write("<li><img src='" + item_list[0] + "' /><h3>"
+        + image_titles[0] + "</h3></li>")
+    self.landing_main.write("<li><img src='" + item_list[1] + "' /><h3>"
+        + image_titles[1] + "</h3></li></ul>")
+    self.landing_main.write("<ul class='rig columns-2'>")
+    self.landing_main.write("<li><img src='" + item_list[2] + "' /><h3>"
+        + image_titles[2] + "</h3></li>")
+    self.landing_main.write("<li><img src='" + item_list[3] + "' /><h3>"
+        + image_titles[3] + "</h3></li></ul>")
 
     file_end = """</center></body></html>"""
     self.landing_main.write(file_end)
@@ -91,8 +169,6 @@ class WebsiteGenerator:
 
 
 # showWebsite(['SECTION:Forecast', ['img.jpg', 'file_1'], ['img.jpg', 'file_2'], 'SECTION:Observed'])
-# w = WebsiteGenerator()
-# forcst_img = "/home/maoxia/Desktop/WPEAR/wpear/sample_data/hrrr_fcast.20170415_t00z.2MT_DPT.IND90k.wrfsfcf01.heatmap.png"
-# obs_img = "/home/maoxia/Desktop/WPEAR/wpear/sample_data/rtma_obs.20170415_t00z.2MT_DPT.IND90k.2dvaranl_ndfd.heatmap.png"
-# diff_img = "/home/maoxia/Desktop/WPEAR/wpear/sample_data/hrrr_fcast.20170415_t00z.2MT_DPT.IND90k.wrfsfc.heatmap_anim.gif"
-# w.showHomePage(['SECTION:Forecast', [forcst_img, 'file_1',], 'SECTION:Observed', [obs_img, 'file_2'], 'SECTION:Forecast vs Observed', [diff_img, 'file_3']])
+w = WebsiteGenerator()
+img = "/home/maoxia/Desktop/pic.png"
+w.showHomePage([img, img, img, img])
