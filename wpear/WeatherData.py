@@ -226,7 +226,7 @@ class WeatherData(object):
         #Issue: what if there's error, missed needed fcast_files?
         print "Generate the anim viz with %d frame(s)"%(len(obs_files))
 
-        _doCompareAnimatedVisualization(obs_files, fcast_files, out_file)
+        _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, self.temp_directory)
 
         return out_file
 
@@ -371,7 +371,7 @@ def _doForecastAnimation(fcast_files, output_name, temp_dir):
     print "Forecast Animation " + output_name + " is complete"
 
 
-def _doCompareAnimatedVisualization(obs_files, fcast_files, out_file):
+def _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, temp_dir):
     gobj_list = []
     dv = DataVisualizer.DataVisualizer()
     dcomp = DataComparator.DataComparator()
@@ -381,7 +381,7 @@ def _doCompareAnimatedVisualization(obs_files, fcast_files, out_file):
         gobj_list.append(grib_msg)
         count += 1
 
-    dv.AnimatedHeatMap(gobj_list, out_file)
+    dv.AnimatedHeatMap(gobj_list, out_file, temp_dir)
     print "Comparison Animation " + out_file + " is complete" 
 
 
