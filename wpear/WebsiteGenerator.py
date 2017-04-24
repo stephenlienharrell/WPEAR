@@ -258,11 +258,11 @@ class WebsiteGenerator:
                     'Observation vs Forcast Visualization']
 
     cur_dir = os.getcwd() + '/'
-    # dir = self.parseDayDirectory(item_list[0])
-    # dir = os.path.normpath(dir + 'demo.html')
-    # file_fullpath = os.path.realpath(dir)
-    # html_file = open(file_fullpath, 'w+')
-    html_file = self.landing_page
+    dir = self.parseDayDirectory(item_list['forecast_viz'])
+    dir = os.path.normpath(dir + 'demo.html')
+    file_fullpath = os.path.realpath(dir)
+    html_file = open(file_fullpath, 'w+')
+    # html_file = self.landing_page
 
     self._writeHomePageHeader(html_file)
     page_prefix = """
