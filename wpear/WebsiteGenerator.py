@@ -248,7 +248,7 @@ class WebsiteGenerator:
 
   def getDemoPage(self, obs, frcast):
     graphs = obs.GetDemoGraphs(frcast)
-    return self.generateHomePage(graphs)
+    return self.generateHomePage(graphs, frcast)
 
 
   def parseDayDirectory(self, file_name):
@@ -260,11 +260,24 @@ class WebsiteGenerator:
     return directory
 
 
-  def generateHomePage(self, item_list):
+  def getDataHour(self, file_name):
+    arr = file_name.split('/')
+    arr = arr[len(arr)-1].split('.')
+    return arr[1]
+
+
+  def generateHomePage(self, item_list, frcast):
     image_titles = ['Observation Visualization', 
                     'Forcast Visualization', 
                     'Standard Deviation Visualization', 
                     'Observation vs Forcast Visualization']
+
+    image_descriptions = {}
+    image_descriptions['observation_viz'] = "Observation at %s"%(self.getDataHour(item_list['observation_viz']))
+    image_descriptions['forecast_viz'] = "Forecast at %s"%(self.getDataHour(item_list['forecast_viz']))
+    image_descriptions['stdv_viz'] = "Observations vs %d-Hour Forecast Over Time"%(frcast.gap_hour)
+    image_descriptions['animated_diff_viz'] = "Observations vs %d-Hour Forecast Over Time"%(frcast.gap_hour)
+
 
     cur_dir = os.getcwd() + '/'
     dir = self.parseDayDirectory(item_list['forecast_viz'])
@@ -284,15 +297,21 @@ class WebsiteGenerator:
 
     html_file.write(page_prefix)
     
+
+    # print item_list['observation_viz']
+    # print item_list['forecast_viz']
+    # print item_list['stdv_viz']
+    # print item_list['animated_diff_viz']
+
     html_file.write("<li><img src='" + cur_dir + item_list['observation_viz'] + "' alt='observation' /><h3>"
-        + image_titles[0] + "</h3> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p> </li>")
+        + image_titles[0] + "</h3><p>" + image_descriptions['observation_viz'] + "</p></li>")
     html_file.write("<li><img src='" + cur_dir + item_list['forecast_viz'] + "' alt='forecast' /><h3>"
-        + image_titles[1] + "</h3></li></ul>")
+        + image_titles[1] + "</h3><p>" + image_descriptions['forecast_viz'] + "</p></li></ul>")
     html_file.write("<ul class='rig columns-2'>")
     html_file.write("<li><img src='" + cur_dir + item_list['stdv_viz'] + "' alt='standard deviation'/><h3>"
-        + image_titles[2] + "</h3></li>")
+        + image_titles[2] + "</h3><p>" + image_descriptions['stdv_viz'] + "</p></li>")
     html_file.write("<li><img src='" + cur_dir + item_list['animated_diff_viz'] + "' alt='animated difference' /><h3>"
-        + image_titles[3] + "</h3></li></ul>")
+        + image_titles[3] + "</h3><p>" + image_descriptions['animated_diff_viz'] + "</p></li></u>")
 
     file_end = """</center></body></html>"""
     html_file.write(file_end)
@@ -332,7 +351,7 @@ class WebsiteGenerator:
                       margin: 0 0 5px;
                   }
                   ul.rig li p {
-                      font-size: .9em;
+                      font-size: 1.2em;
                       line-height: 1.5em;
                       color: #999;
                   }

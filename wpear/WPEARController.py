@@ -35,10 +35,10 @@ def StartRun(options):
         rtma_obs.VisualizeAnimatedDifference(hrrr_fcast, 'ADIF')
         rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
         
-        # wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
+        wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
         # graphs = rtma_obs.GetDemoGraphs(hrrr_fcast)
-        # print wg.generateHomePage(graphs)
-        wg.runWebManager()
+        # print wg.generateHomePage(graphs, hrrr_fcast)
+        # wg.runWebManager()
         # wg.showWebsite()
 
 #    for date in hrrr_dates:
