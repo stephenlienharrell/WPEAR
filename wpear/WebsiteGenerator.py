@@ -19,7 +19,8 @@ class WebsiteGenerator:
 
 
   def showWebsite(self):
-    webbrowser.open_new(self.landing_file)
+    #webbrowser.open_new(self.landing_file)
+    pass
 
 
   def addSidebarToLandingPage(self):
