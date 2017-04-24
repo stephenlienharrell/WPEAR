@@ -198,8 +198,8 @@ class WebsiteGenerator:
     return files
 
 
-  def generateDailyPage(self, item_list):
-    dir = self.parseDirectory(self.webdir, next(item for item in item_list if len(item)==2)[0])
+  def generateDailyPage(self, file_dir, item_list):
+    dir = parseDirectory(file_dir, next(item for item in item_list if len(item)==2)[0])
     dir = os.path.normpath(dir + 'day.html')
     file_fullpath = os.path.realpath(dir)
     html_file = open(file_fullpath, 'w+')
@@ -227,6 +227,7 @@ class WebsiteGenerator:
     html_file.write(file_end)
     html_file.close()
 
+    #webbrowser.open_new(file_fullpath)
 
   def parseDirectory(self, webdir, file_name):
       #file_name = "hrrr_fcast.20170413_t00z.2MT_DPT.IND90k.wrfsfcf01.grb2"
@@ -244,7 +245,6 @@ class WebsiteGenerator:
 
       directory+= year + '/' + month + '/' + day + '/'
       return directory
-
 
   def generateHomePage(self, item_list):
     # Can make different types of viz with different colors
