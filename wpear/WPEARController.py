@@ -19,7 +19,7 @@ def StartRun(options):
         hrrr_fcast = HRRRSurfaceForecasts.HRRRSurfaceForecasts(date,
                 VARS, DOMAIN, options, testing=options.testing)
         hrrr_fcast.DownloadData()
-        hrrr_fcast.CleanupDownloads()
+        # hrrr_fcast.CleanupDownloads()
         hrrr_fcast.VisualizeData()
         hrrr_fcast.VisualizeAnimatedForecast()
 
@@ -29,15 +29,17 @@ def StartRun(options):
         rtma_obs = RTMAObservations.RTMAObservations(date,
                 VARS, DOMAIN, options, testing=options.testing)
         rtma_obs.DownloadData()
-        rtma_obs.CleanupDownloads()
+        # rtma_obs.CleanupDownloads()
         rtma_obs.VisualizeData()
         rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
         rtma_obs.VisualizeAnimatedDifference(hrrr_fcast, 'ADIF')
         rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
         
-        wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
+        # wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
+        # graphs = rtma_obs.GetDemoGraphs(hrrr_fcast)
+        # print wg.generateHomePage(graphs)
         wg.runWebManager()
-        wg.showWebsite()
+        # wg.showWebsite()
 
 #    for date in hrrr_dates:
 #        print 'Starting HRRR Observations for ' + date.strftime('%Y%m%d')

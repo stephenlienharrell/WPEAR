@@ -71,9 +71,9 @@ class WeatherData(object):
             self._waitForThreadPool()
 
 
-        self._waitForThreadPool(thread_max=0) 
-    
+        self._waitForThreadPool(thread_max=0)
 
+        
     def VisualizeData(self):
         needed_vars = ['vars', 'visualization_heatmap_files', 'converted_files']
         self._CheckVars('VisualizeData', needed_vars)
@@ -101,6 +101,7 @@ class WeatherData(object):
             print "This function only works for forecasts"
             return
 
+        # gobj_list = []
         for i, file_list in enumerate(self.converted_files_by_hour):
             output_name = self.forecast_animation_files[i]
             if os.path.exists(output_name):
@@ -110,7 +111,6 @@ class WeatherData(object):
             self._waitForThreadPool()
 
         self._waitForThreadPool(thread_max=0)
-        return output_name.replace("t23z", "t00z") # horrible coding for demo
 
 
     def VisualizeStandardDeviation(self, forecast):
@@ -137,11 +137,11 @@ class WeatherData(object):
                 obs_extra_info=self.extra_info, fcast_tag=forecast.tag, 
                 vars='2MTK', domain=self.domain, comp_tag=comparator_tag)
 
-            self.visualization_stddev_files.append(output_name)
-
             if os.path.exists(output_name):
                 continue
 
+            self.visualization_stddev_files.append(output_name)
+            
             failed = False
             for x in range(1, forecast.max_fcast + 1, forecast.hours_between_fcasts):
                 fcast_date = obs_date - datetime.timedelta(hours=x)
@@ -185,7 +185,7 @@ class WeatherData(object):
 
             if not os.path.exists(obs_file):
                 continue
-            print "converted file %s and chose date %s"%(obs_file, obs_date)
+            # print "converted file %s and chose date %s"%(obs_file, obs_date)
             fcast_date = obs_date - datetime.timedelta(hours=self.gap_hour)
 
             gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
@@ -194,17 +194,15 @@ class WeatherData(object):
                         time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
                         domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
 
-
             # print "%s exits? %r"%(fcast_file, os.path.exists(fcast_file))
             if not os.path.exists(fcast_file):
                 continue
 
-            # Append all the compared files
+            # Append the existed compared files
             fcast_files.append(fcast_file)
             obs_files.append(obs_file)
 
         
-        ## TODO FIX VAR EVERYWHERE INCLUDING HERE
         out_file = out_dir + '/' + self.compared_viz_animated_file_format.format(
                     obs_tag=self.tag, 
                     obs_extra_info=self.extra_info, 
@@ -214,7 +212,6 @@ class WeatherData(object):
                     domain=self.domain,
                     comp_tag=comparator_tag)
 
-        print "Generate the anim viz with %d frame(s)"%(len(obs_files))
         self.visualization_animated_difference_files.append(out_file)
         _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, self.temp_directory)
 
@@ -260,11 +257,11 @@ class WeatherData(object):
                         fcast_date=fcast_date.strftime(self.date_format) + fcast_date.strftime('_t%Hz'),
                         fcast_number=x, fcast_extra_info=forecast.extra_info, var='2MTK', domain=self.domain,
                         comp_tag=comparator_tag)
+                self.visualization_difference_files.append(out_file)
 
-                
                 if os.path.exists(out_file):
                     continue
-                self.visualization_difference_files.append(out_file)
+
                 self._addToThreadPool(_doCompareVisualization, (obs_file, fcast_file, out_file))
                 self._waitForThreadPool()
 
@@ -276,6 +273,13 @@ class WeatherData(object):
         shutil.rmtree(self.temp_directory)
 
     
+    def _CheckVars(self, function, vars):
+        for var in vars:
+            if not hasattr(self, var):
+                raise AttributeError('Variable self.%s not found and is needed in the %s function' % 
+                        (var, function))
+
+
     def GetDemoGraphs(self, forecast):
         if not self.obs:
             raise ValueError('Must call GetDemoGraphs on observations only')
@@ -290,20 +294,13 @@ class WeatherData(object):
                     '/' + forecast.output_filename_format.format(
                     time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
                     domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
-
+        # print 'obser file is %s' % (latest_obs_file)
+        # print 'foracast file is %s' %(fcast_file)
         item_list['forecast_viz'] = fcast_file
         item_list['observation_viz'] = latest_obs_file
         item_list['stdv_viz'] = self.visualization_stddev_files[0]
         item_list['animated_diff_viz'] = self.visualization_animated_difference_files[0]
         return item_list
-
-
-    def _CheckVars(self, function, vars):
-        for var in vars:
-            if not hasattr(self, var):
-                raise AttributeError('Variable self.%s not found and is needed in the %s function' % 
-                        (var, function))
-
 
                 
     def _addToThreadPool(self, function, args):
@@ -346,14 +343,14 @@ def _doDownload(url, file_directory, temp_directory, wgrib_path, egrep_path,
             maxlat, minlon, maxlon, converted_file)
     print "Conversion completed for " + input_file
 
-
 def _doVisualization(file_name, out_file):
     visualizer = DataVisualizer.DataVisualizer()
     grib_loaded = pygrib.open(file_name)
+    #for var in self.vars:
+    
     grib_msg = grib_loaded.select(name='2 metre temperature')[0]
     visualizer.Heatmap(grib_msg, out_file)
     print "Visualizing " + out_file + " is complete"
-
 
 def _doStandardDeviationVisualization(observed_file, forecast_files, output_name):
     dc = DataComparator.DataComparator()
@@ -361,7 +358,6 @@ def _doStandardDeviationVisualization(observed_file, forecast_files, output_name
     arr = dc.stddev(forecast_files, observed_file, var)
     dv = DataVisualizer.DataVisualizer()
     dv.scatterBar(arr, observed_file, output_name)
-
 
 def _doCompareVisualization(obs_file, fcast_file, out_file):
     visualizer = DataVisualizer.DataVisualizer()
@@ -395,6 +391,5 @@ def _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, temp_dir):
 
     dv.AnimatedHeatMap(gobj_list, out_file, temp_dir)
     print "Comparison Animation " + out_file + " is complete" 
-
 
 

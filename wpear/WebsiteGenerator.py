@@ -246,9 +246,9 @@ class WebsiteGenerator:
       return directory
 
 
-  def loadDemoPage(self, obs, frcast):
+  def getDemoPage(self, obs, frcast):
     graphs = obs.GetDemoGraphs(frcast)
-    self.generateHomePage(graphs)
+    return self.generateHomePage(graphs)
 
 
   def parseDayDirectory(self, file_name):
@@ -271,7 +271,6 @@ class WebsiteGenerator:
     dir = os.path.normpath(dir + 'demo.html')
     file_fullpath = os.path.realpath(dir)
     html_file = open(file_fullpath, 'w+')
-    # html_file = self.landing_page
 
     self._writeHomePageHeader(html_file)
     page_prefix = """
@@ -298,6 +297,7 @@ class WebsiteGenerator:
     file_end = """</center></body></html>"""
     html_file.write(file_end)
     html_file.close()
+    return dir[4:] ##Return the path for demo.html without "web/" prefix
 
 
   def _writeHomePageHeader(self, html_file):
