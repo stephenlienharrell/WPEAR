@@ -183,7 +183,7 @@ class WeatherData(object):
 
             if not os.path.exists(obs_file):
                 continue
-            print "converted file %s and chose date %s"%(obs_file, obs_date)
+            # print "converted file %s and chose date %s"%(obs_file, obs_date)
             fcast_date = obs_date - datetime.timedelta(hours=self.gap_hour)
 
             gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
@@ -192,7 +192,7 @@ class WeatherData(object):
                         time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
                         domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
 
-            print "%s exits? %r"%(fcast_file, os.path.exists(fcast_file))
+            # print "%s exits? %r"%(fcast_file, os.path.exists(fcast_file))
             if not os.path.exists(fcast_file):
                 # What if the wanted fcast_file not exist
                 continue
@@ -224,7 +224,8 @@ class WeatherData(object):
         #Question: need threading? only generate one gif for an hour
 
         #Issue: what if there's error, missed needed fcast_files?
-        print "Generate the anim viz with %d frame(s)"%(len(obs_files))
+
+        #print "Generate the anim viz with %d frame(s)"%(len(obs_files))
 
         _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, self.temp_directory)
 
@@ -351,7 +352,6 @@ def _doStandardDeviationVisualization(observed_file, forecast_files, output_name
     dv.scatterBar(arr, observed_file, output_name)
 
 def _doCompareVisualization(obs_file, fcast_file, out_file):
-    print "called compared viz func"
     visualizer = DataVisualizer.DataVisualizer()
     dcomp = DataComparator.DataComparator()
     grib_msg = dcomp.difference(obs_file, fcast_file)
