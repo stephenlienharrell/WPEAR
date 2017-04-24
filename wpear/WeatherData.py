@@ -372,6 +372,8 @@ def _doStandardDeviationVisualization(observed_file, forecast_files, output_name
     arr = dc.stddev(forecast_files, observed_file, var)
     dv = DataVisualizer.DataVisualizer()
     dv.scatterBar(arr, observed_file, output_name)
+    print "Visualizing " + output_name + " is complete"
+
 
 def _doCompareVisualization(obs_file, fcast_file, out_file):
     visualizer = DataVisualizer.DataVisualizer()
