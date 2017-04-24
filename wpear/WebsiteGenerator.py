@@ -258,11 +258,12 @@ class WebsiteGenerator:
                     'Observation vs Forcast Visualization']
 
     cur_dir = os.getcwd() + '/'
-    dir = self.parseDayDirectory(item_list[0])
-    dir = os.path.normpath(dir + 'demo.html')
-    file_fullpath = os.path.realpath(dir)
-    html_file = open(file_fullpath, 'w+')
-    
+    # dir = self.parseDayDirectory(item_list[0])
+    # dir = os.path.normpath(dir + 'demo.html')
+    # file_fullpath = os.path.realpath(dir)
+    # html_file = open(file_fullpath, 'w+')
+    html_file = self.landing_page
+
     self._writeHomePageHeader(html_file)
     page_prefix = """
               <body>
@@ -274,20 +275,21 @@ class WebsiteGenerator:
               <ul class='rig columns-2'>"""
 
     html_file.write(page_prefix)
-
-    html_file.write("<li><img src='" + cur_dir + item_list[0] + "' /><h3>"
-        + image_titles[0] + "</h3></li>")
-    html_file.write("<li><img src='" + cur_dir + item_list[1] + "' /><h3>"
+    
+    html_file.write("<li><img src='" + cur_dir + item_list['observation_viz'] + "' alt='observation' /><h3>"
+        + image_titles[0] + "</h3> <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p> </li>")
+    html_file.write("<li><img src='" + cur_dir + item_list['forecast_viz'] + "' alt='forecast' /><h3>"
         + image_titles[1] + "</h3></li></ul>")
     html_file.write("<ul class='rig columns-2'>")
-    html_file.write("<li><img src='" + cur_dir + item_list[2] + "' /><h3>"
+    html_file.write("<li><img src='" + cur_dir + item_list['stdv_viz'] + "' alt='standard deviation'/><h3>"
         + image_titles[2] + "</h3></li>")
-    html_file.write("<li><img src='" + cur_dir + item_list[3] + "' /><h3>"
+    html_file.write("<li><img src='" + cur_dir + item_list['animated_diff_viz'] + "' alt='animated difference' /><h3>"
         + image_titles[3] + "</h3></li></ul>")
 
     file_end = """</center></body></html>"""
     html_file.write(file_end)
     html_file.close()
+
 
   def _writeHomePageHeader(self, html_file):
     file_head = """
@@ -295,7 +297,7 @@ class WebsiteGenerator:
           <head>
               <style type="text/css">
                   body {
-                      background-color: #EAEDED
+                      #background-color: #EAEDED
                   }
                   ul.rig {
                       list-style: none;
@@ -363,7 +365,5 @@ class WebsiteGenerator:
     
 ################################### Test run  script ####################################
 # wg = WebsiteGenerator(webdir='web')
-# img = "web/2017/04/23/hrrr_fcast/hrrr_fcast.20170423_t00z.2MT_DPT.IND90k.wrfsfcf01.heatmap.png"
-# wg.generateHomePage([img, img, img, img])
 # wg.addSidebarToLandingPage()
 # wg.showWebsite()

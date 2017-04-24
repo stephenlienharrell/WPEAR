@@ -4,6 +4,7 @@ import multiprocessing
 import os
 import shutil
 import time
+import glob
 
 import pygrib
 
@@ -137,7 +138,7 @@ class WeatherData(object):
         fcast_needed_vars = ['tag', 'max_fcast', 'vars', 'domain', 'output_filename_format', 'extra_info']
         forecast._CheckVars('VisualizeDifference', fcast_needed_vars)
         if not self.obs:
-            raise ValueError('Must call VisualDifference on observations only')
+            raise ValueError('Must call VisualizeAnimatedDifference on observations only')
         obs_files = []
         fcast_files = []
 
@@ -241,6 +242,27 @@ class WeatherData(object):
         shutil.rmtree(self.temp_directory)
 
     
+    def GetDemoGraphs(self, forecast):
+        if not self.obs:
+            raise ValueError('Must call GetDemoGraphs on observations only')
+        item_list = {}
+        list_of_files = glob.glob(self.local_directory + '/*.png')
+        list_of_files.sort()
+        latest_obs_file = list_of_files[len(list_of_files)-1]
+        obs_date = self._GetTimeOfObs(latest_obs_file)
+        fcast_date = obs_date - datetime.timedelta(hours=self.gap_hour)
+        gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
+        fcast_file =  (self.web_directory + fcast_date.strftime(forecast.local_directory_date_format) + 
+                    '/' + forecast.output_filename_format.format(
+                    time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
+                    domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
+
+        item_list['forecast_viz'] = fcast_file
+        item_list['observation_viz'] = latest_obs_file
+        item_list['stdv_viz'] = fcast_file
+        item_list['animated_diff_viz'] = fcast_file
+        return item_list
+
     def _CheckVars(self, function, vars):
         for var in vars:
             if not hasattr(self, var):
