@@ -46,12 +46,17 @@ class WeatherData(object):
         if not os.path.exists(self.temp_directory):
             os.makedirs(self.temp_directory)
 
+        if not os.path.exists(self.local_directory):
+            os.makedirs(self.local_directory)
 
        
         for index, file_name in enumerate(self.files_to_download):
             converted_file = self.converted_files[index]
             if os.path.exists(converted_file):
-                continue
+                if os.stat(converted_file).st_size == 0:
+                    os.remove(converted_file)
+                else: 
+                    continue
 
             file_directory = self.url_directory + file_name
             input_file = self.temp_directory + '/' + file_name
@@ -120,6 +125,9 @@ class WeatherData(object):
 
             out_dir = obs_date.strftime(self.compared_viz_directory)
             out_dir = out_dir.format(obs_tag=self.tag, fcast_tag=forecast.tag, comp_tag=comparator_tag)
+
+            if not os.path.exists(out_dir):
+                os.makedirs(out_dir)
 
             output_name = out_dir + '/' + self.output_filename_format_stddev_viz.format(
                 time=obs_date.strftime(self.date_format) + obs_date.strftime('_t%Hz'), 
@@ -200,7 +208,6 @@ class WeatherData(object):
                 self._waitForThreadPool()
 
         self._waitForThreadPool(thread_max=0)
-        return out_file
 
 
     def CleanupDownloads(self):
@@ -260,6 +267,7 @@ def _doVisualization(file_name, out_file):
     visualizer = DataVisualizer.DataVisualizer()
     grib_loaded = pygrib.open(file_name)
     #for var in self.vars:
+    
     grib_msg = grib_loaded.select(name='2 metre temperature')[0]
     visualizer.Heatmap(grib_msg, out_file)
     print "Visualizing " + out_file + " is complete"
@@ -267,7 +275,6 @@ def _doVisualization(file_name, out_file):
 def _doStandardDeviationVisualization(observed_file, forecast_files, output_name):
     dc = DataComparator.DataComparator()
     var = '2 metre temperature'
-    print str(forecast_files) + observed_file
     arr = dc.stddev(forecast_files, observed_file, var)
     dv = DataVisualizer.DataVisualizer()
     dv.scatterBar(arr, observed_file, output_name)

@@ -191,7 +191,7 @@ class DataVisualizer():
         # Convert series of static viualization to animated file
         os.system("cd {}; convert -delay 60 @{} {}".format(working_dir, file_list_file, 'out.gif'))
 
-        os.rename('%s/out.gif' % working_dir, file_name)
+        shutil.move('%s/out.gif' % working_dir, file_name)
 
         # Remove the tmp files
 #        os.remove('file_list.txt')
