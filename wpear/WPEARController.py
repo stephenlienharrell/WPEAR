@@ -8,7 +8,6 @@ import WebsiteGenerator
 VARS = ['2MT', 'DPT']
 DOMAIN = 'IND90k'
 
-
 def StartRun(options):
 
     now = datetime.datetime.utcnow()
@@ -33,6 +32,7 @@ def StartRun(options):
         rtma_obs.CleanupDownloads()
         rtma_obs.VisualizeData()
         rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
+        rtma_obs.VisualizeAnimatedDifference(hrrr_fcast, 'ADIF')
         rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
         
         wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
