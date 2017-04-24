@@ -45,49 +45,33 @@ class WeatherData(object):
         needed_vars = ['url', 'url_directory', 'files_to_download', 'converted_files']
         self._CheckVars('DownloadData', needed_vars)
 
-        print "Starting data downloads"
+        print "Starting data downloads and data conversion"
 
         if not os.path.exists(self.temp_directory):
             os.makedirs(self.temp_directory)
 
-
-        for index, file_name in enumerate(self.files_to_download):
-            converted_file = self.converted_files[index]
-            if os.path.exists(converted_file):
-                continue
-
-            file_directory = self.url_directory + file_name
-
-            self._addToThreadPool(_doDownload, (self.url, file_directory, self.temp_directory))
-            self._waitForThreadPool()
-
-
-        self._waitForThreadPool(thread_max=0)
-
-        
-    def ConvertData(self):
-        needed_vars = ['files_to_download', 'local_directory', 'converted_files', 'var_lookup_table']
-        self._CheckVars('ConvertData', needed_vars)
-
-        print "Starting data conversion"
-
         if not os.path.exists(self.local_directory):
             os.makedirs(self.local_directory)
 
-        converted_files = []
         for index, file_name in enumerate(self.files_to_download):
-            input_file = self.temp_directory + '/' + file_name
-            if not os.path.exists(input_file):
-                continue
             converted_file = self.converted_files[index]
             if os.path.exists(converted_file):
-                continue
-            self._addToThreadPool(_doConversion, (self.wgrib_path, self.egrep_path, input_file,
-                self.temp_directory + '/converter', self.var_lookup_table.values(), MINLAT, MAXLAT, MINLON, MAXLON,
-                converted_file))
+                if os.stat(converted_file).st_size == 0:
+                    os.remove(converted_file)
+                else: 
+                    continue
+
+            file_directory = self.url_directory + file_name
+            input_file = self.temp_directory + '/' + file_name
+
+            self._addToThreadPool(_doDownload, (self.url, file_directory, self.temp_directory,
+                self.wgrib_path, self.egrep_path, input_file, 
+                self.var_lookup_table.values(), MINLAT, MAXLAT, MINLON, MAXLON,
+                converted_file, self.temp_directory + '/converted'))
             self._waitForThreadPool()
 
-        self._waitForThreadPool(thread_max=0)
+
+        self._waitForThreadPool(thread_max=0) 
     
 
     def VisualizeData(self):
@@ -117,7 +101,6 @@ class WeatherData(object):
             print "This function only works for forecasts"
             return
 
-        # gobj_list = []
         for i, file_list in enumerate(self.converted_files_by_hour):
             output_name = self.forecast_animation_files[i]
             if os.path.exists(output_name):
@@ -128,6 +111,57 @@ class WeatherData(object):
 
         self._waitForThreadPool(thread_max=0)
         return output_name.replace("t23z", "t00z") # horrible coding for demo
+
+
+    def VisualizeStandardDeviation(self, forecast):
+        print "Starting Forecast Deviation from Observation Visualization"
+        gobj_list = []
+
+        for i, obs_file in enumerate(self.converted_files):
+
+            if not os.path.exists(obs_file):
+                continue
+            fcast_files = []
+            comparator_tag = 'STDDEV'
+
+            obs_date = self._GetTimeOfObs(obs_file)
+
+            out_dir = obs_date.strftime(self.compared_viz_directory)
+            out_dir = out_dir.format(obs_tag=self.tag, fcast_tag=forecast.tag, comp_tag=comparator_tag)
+
+            if not os.path.exists(out_dir):
+                os.makedirs(out_dir)
+
+            output_name = out_dir + '/' + self.output_filename_format_stddev_viz.format(
+                time=obs_date.strftime(self.date_format) + obs_date.strftime('_t%Hz'), 
+                obs_extra_info=self.extra_info, fcast_tag=forecast.tag, 
+                vars='2MTK', domain=self.domain, comp_tag=comparator_tag)
+
+            self.visualization_stddev_files.append(output_name)
+
+            if os.path.exists(output_name):
+                continue
+
+            failed = False
+            for x in range(1, forecast.max_fcast + 1, forecast.hours_between_fcasts):
+                fcast_date = obs_date - datetime.timedelta(hours=x)
+
+                gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
+                fcast_file =  (self.web_directory + fcast_date.strftime(forecast.local_directory_date_format) + 
+                        '/' + forecast.output_filename_format.format(
+                        time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
+                        domain=forecast.domain, forecast_number=x, extra_info=forecast.extra_info))
+
+                if not os.path.exists(fcast_file):
+                    failed = True
+                    break
+
+                fcast_files.append(fcast_file)
+            if failed:
+                continue
+
+            self._addToThreadPool(_doStandardDeviationVisualization, (obs_file, fcast_files, output_name))
+            self._waitForThreadPool()
 
 
     def VisualizeAnimatedDifference(self, forecast, comparator_tag):
@@ -181,7 +215,7 @@ class WeatherData(object):
                     comp_tag=comparator_tag)
 
         print "Generate the anim viz with %d frame(s)"%(len(obs_files))
-
+        self.visualization_animated_difference_files.append(out_file)
         _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, self.temp_directory)
 
         return out_file
@@ -227,14 +261,14 @@ class WeatherData(object):
                         fcast_number=x, fcast_extra_info=forecast.extra_info, var='2MTK', domain=self.domain,
                         comp_tag=comparator_tag)
 
+                
                 if os.path.exists(out_file):
                     continue
-
+                self.visualization_difference_files.append(out_file)
                 self._addToThreadPool(_doCompareVisualization, (obs_file, fcast_file, out_file))
                 self._waitForThreadPool()
 
         self._waitForThreadPool(thread_max=0)
-        return out_file
 
 
     def CleanupDownloads(self):
@@ -259,9 +293,10 @@ class WeatherData(object):
 
         item_list['forecast_viz'] = fcast_file
         item_list['observation_viz'] = latest_obs_file
-        item_list['stdv_viz'] = fcast_file
-        item_list['animated_diff_viz'] = fcast_file
+        item_list['stdv_viz'] = self.visualization_stddev_files[0]
+        item_list['animated_diff_viz'] = self.visualization_animated_difference_files[0]
         return item_list
+
 
     def _CheckVars(self, function, vars):
         for var in vars:
@@ -291,7 +326,9 @@ class WeatherData(object):
                 count += 1
 
 
-def _doDownload(url, file_directory, temp_directory):
+def _doDownload(url, file_directory, temp_directory, wgrib_path, egrep_path,
+                input_file, var_list, minlat, maxlat, minlon, maxlon, converted_file,
+                convert_temp_directory):
     try:
         downloader = DataDownloader.DataDownloader()
         downloader.download(url, file_directory, temp_directory)
@@ -304,11 +341,9 @@ def _doDownload(url, file_directory, temp_directory):
         return
     print "Download completed for %s" % file_directory
 
-
-def _doConversion(wgrib_path, egrep_path, input_file, temp_directory, var_list, minlat,
-        maxlat, minlon, maxlon, converted_file):
     dc = DataConverter.DataConverter(wgrib_path, egrep_path)
-    dc.extractMessagesAndSubsetRegion(input_file, var_list, temp_directory, minlat,maxlat, minlon, maxlon, converted_file)
+    dc.extractMessagesAndSubsetRegion(input_file, var_list, convert_temp_directory, minlat,
+            maxlat, minlon, maxlon, converted_file)
     print "Conversion completed for " + input_file
 
 
@@ -320,6 +355,14 @@ def _doVisualization(file_name, out_file):
     print "Visualizing " + out_file + " is complete"
 
 
+def _doStandardDeviationVisualization(observed_file, forecast_files, output_name):
+    dc = DataComparator.DataComparator()
+    var = '2 metre temperature'
+    arr = dc.stddev(forecast_files, observed_file, var)
+    dv = DataVisualizer.DataVisualizer()
+    dv.scatterBar(arr, observed_file, output_name)
+
+
 def _doCompareVisualization(obs_file, fcast_file, out_file):
     visualizer = DataVisualizer.DataVisualizer()
     dcomp = DataComparator.DataComparator()
@@ -328,7 +371,7 @@ def _doCompareVisualization(obs_file, fcast_file, out_file):
     print "Visualizing " + out_file + " is complete"
 
 
-def _doForecastAnimation(fcast_files, output_name, temp_directory):
+def _doForecastAnimation(fcast_files, output_name, temp_dir):
     gobj_list = []
     for fcast in fcast_files:
         if not os.path.exists(fcast):
@@ -336,11 +379,11 @@ def _doForecastAnimation(fcast_files, output_name, temp_directory):
         gobj_list.append(pygrib.open(fcast).select(name='2 metre temperature')[0])
 
     dv = DataVisualizer.DataVisualizer()
-    dv.AnimatedHeatMap(gobj_list, output_name, temp_directory)
+    dv.AnimatedHeatMap(gobj_list, output_name, temp_dir)
     print "Forecast Animation " + output_name + " is complete"
 
 
-def _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, temp_directory):
+def _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, temp_dir):
     gobj_list = []
     dv = DataVisualizer.DataVisualizer()
     dcomp = DataComparator.DataComparator()
@@ -350,7 +393,7 @@ def _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, temp_direc
         gobj_list.append(grib_msg)
         count += 1
 
-    dv.AnimatedHeatMap(gobj_list, out_file, temp_directory)
+    dv.AnimatedHeatMap(gobj_list, out_file, temp_dir)
     print "Comparison Animation " + out_file + " is complete" 
 
 

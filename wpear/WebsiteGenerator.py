@@ -13,9 +13,13 @@ class WebsiteGenerator:
     self.sidebar_page = open(self.sidebar_file, 'w+')
     self.webdir = webdir
     
+  def runWebManager(self):
+    self.addSidebarToLandingPage()
+
 
   def showWebsite(self):
-    webbrowser.open_new(self.landing_file)
+    #webbrowser.open_new(self.landing_file)
+    pass
 
 
   def addSidebarToLandingPage(self):
@@ -240,6 +244,11 @@ class WebsiteGenerator:
 
       directory+= year + '/' + month + '/' + day + '/'
       return directory
+
+
+  def loadDemoPage(self, obs, frcast):
+    graphs = obs.GetDemoGraphs(frcast)
+    self.generateHomePage(graphs)
 
 
   def parseDayDirectory(self, file_name):
