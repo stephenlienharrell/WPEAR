@@ -4,6 +4,8 @@ import os
 import sys
 import pygrib
 import random
+import string
+import shutil
 import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
@@ -65,7 +67,7 @@ class DataVisualizer():
         date = self.GetTime(grib_object)
 
         fig = plt.figure(figsize=(8,8))
-        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])    
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
 
         m = Basemap(
                 resolution='c', # c, l, i, h, f or None
@@ -151,7 +153,7 @@ class DataVisualizer():
         plt.close(fig)
 
 
-    def AnimatedHeatMap(self, grib_objects, file_name):
+    def AnimatedHeatMap(self, grib_objects, file_name, temp_dir):
         """Generate Animated Heatmap with Data from grib_objects
         grib_objects:   a list of grib objects
         file_name:      a string representing the name of generated picture
@@ -169,26 +171,35 @@ class DataVisualizer():
             count += 1
 
         count = 0
-        f = open('file_list.txt', 'w')
+        working_dir = '%s/%s%s' % (temp_dir, 'frames', ''.join(random.choice(string.lowercase) for x in range(6)))
+        file_list_file = 'file_list.txt'
+        if not os.path.exists(working_dir):
+            os.makedirs(working_dir)
+        f = open('%s/%s' % (working_dir, file_list_file), 'w')
+        try: 
+            # Generate each frame one by one
+            while (count < len(grib_objects)):
+                filenames.append('pic_' + str(count) + '.png')
+                f.write("%s\n" % filenames[count])
+                self.Frame(grib_objects[count], "%s/%s" % (working_dir, filenames[count]), vmin, vmax)
+                # print 'Generated ' + filenames[count]
+                count += 1
+        finally:
+          f.close()
 
-        # Generate each frame one by one
-        if not os.path.exists('frames/'):
-            os.makedirs('frames')
-        while (count < len(grib_objects)):
-            filenames.append('pic_' + str(count) + '.png')
-            f.write("%s\n" % filenames[count])
-            self.Frame(grib_objects[count], filenames[count], vmin, vmax)
-            # print 'Generated ' + filenames[count]
-            count += 1
-        f.close()
 
         # Convert series of static viualization to animated file
-        os.system("convert -delay 60 @file_list.txt {}".format(file_name))
+        os.system("cd {}; convert -delay 60 @{} {}".format(working_dir, file_list_file, 'out.gif'))
+
+        os.rename('%s/out.gif' % working_dir, file_name)
 
         # Remove the tmp files
-        os.remove('file_list.txt')
-        for f in filenames:
-            os.remove(f)
+#        os.remove('file_list.txt')
+#        for f in filenames:
+#            os.remove(f)
+        shutil.rmtree(working_dir)
+
+        # plt.close(fig)
 
 
     def SimplePlot(self, grib_object, file_name):
@@ -285,37 +296,9 @@ class DataVisualizer():
         plt.savefig(file_name)
 
 
-    def scatterBar(self, arr, observed_file, file_name):
-        f_y = np.asarray(np.trim_zeros(arr[1]))
-        f_x = np.arange(1, f_y.size+1, 1)
-        f_e = np.asarray(np.trim_zeros(arr[2]))
-        plt.errorbar(f_x, f_y, f_e, linestyle='solid', barsabove='true', marker='o', color='orange', capsize=5)
-        
-        o_y = np.full((f_y.size+1), arr[0][0])
-        o_x = np.arange(0, f_y.size+1, 1)
-        o_e = np.full((f_y.size+1), arr[0][1])
-        (plotline, _, barlinecols) = plt.errorbar(o_x, o_y, o_e, linestyle='solid', barsabove='true', marker='x', color='green', capsize=5)
-        barlinecols[0].set_linestyle('-.')
-        
-        axes = plotline.axes
-        axes.set_xlabel('Hours prior')
-        axes.set_xlim(left=0, right=f_y.size)
-        axes.set_xticks(o_x)
-        
-        axes.set_ylabel('Temperature (Celsius)')
-        
-        datetime = observed_file.split('/')[-1].split('.')[1]
-        date = datetime[:8]
-        time = datetime[10:12]
-        plt.title('Standard deviation of forecasts \n against observation at {}:{} hours'.format(date, time), fontsize = 'x-large')
-            
-        plt.savefig(file_name)
-        plt.close()
-
-
 
 # Make a DataVisualizer
-# v = DataVisualizer()
+v = DataVisualizer()
 
 #################################
 # Generate static visualization #

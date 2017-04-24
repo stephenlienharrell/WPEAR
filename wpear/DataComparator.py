@@ -20,6 +20,7 @@ class DataComparator:
 
 
   def stddev(self, forecast_file_list, observed_file, var):
+    'forecast_file_list must be in descending order of times e.g. 11, 10, 9 with obs = 12'
     arr = [[0 for i in range(len(forecast_file_list))] for j in range(3)]
     
     gfile_o = pygrib.open(observed_file)
@@ -37,7 +38,3 @@ class DataComparator:
 
     # print arr
     return arr
-
-
-
-#DataComparator('hrrr.t15z.wrfsubhf01.grib2', 'hrrr.t15z.wrfsubhf01.grib2')
