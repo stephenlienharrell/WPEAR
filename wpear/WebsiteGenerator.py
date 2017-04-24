@@ -242,8 +242,54 @@ class WebsiteGenerator:
       return directory
 
 
+  def parseDayDirectory(self, file_name):
+    # file_name = "web/2017/04/23/hrrr_fcast/hrrr_fcast.20170423_t00z.2MT_DPT.IND90k.wrfsfcf01.heatmap.png"
+    seg = file_name.split('/')
+    directory = ''
+    for i in range(4):
+      directory += seg[i] + '/'
+    return directory
+
+
   def generateHomePage(self, item_list):
-    # Can make different types of viz with different colors
+    image_titles = ['Observation Visualization', 
+                    'Forcast Visualization', 
+                    'Standard Deviation Visualization', 
+                    'Observation vs Forcast Visualization']
+
+    cur_dir = os.getcwd() + '/'
+    dir = self.parseDayDirectory(item_list[0])
+    dir = os.path.normpath(dir + 'demo.html')
+    file_fullpath = os.path.realpath(dir)
+    html_file = open(file_fullpath, 'w+')
+    
+    self._writeHomePageHeader(html_file)
+    page_prefix = """
+              <body>
+              <center>
+              <h1>
+                  <br>
+                  WPEAR
+              </h1>
+              <ul class='rig columns-2'>"""
+
+    html_file.write(page_prefix)
+
+    html_file.write("<li><img src='" + cur_dir + item_list[0] + "' /><h3>"
+        + image_titles[0] + "</h3></li>")
+    html_file.write("<li><img src='" + cur_dir + item_list[1] + "' /><h3>"
+        + image_titles[1] + "</h3></li></ul>")
+    html_file.write("<ul class='rig columns-2'>")
+    html_file.write("<li><img src='" + cur_dir + item_list[2] + "' /><h3>"
+        + image_titles[2] + "</h3></li>")
+    html_file.write("<li><img src='" + cur_dir + item_list[3] + "' /><h3>"
+        + image_titles[3] + "</h3></li></ul>")
+
+    file_end = """</center></body></html>"""
+    html_file.write(file_end)
+    html_file.close()
+
+  def _writeHomePageHeader(self, html_file):
     file_head = """
         <html>
           <head>
@@ -311,37 +357,13 @@ class WebsiteGenerator:
                   }
                   
               </style>
-          </head>
-          <body>
-              <center>
-              <h1>
-                  <br>
-                  WPEAR
-              </h1>
-              <ul class='rig columns-2'>"""
+          </head>"""
+    html_file.write(file_head)
 
-    self.landing_page.write(file_head)
-    image_titles = ['Observation Visualization', 
-                    'Forcast Visualization', 
-                    'Standard Deviation Visualization', 
-                    'Observation vs Forcast Visualization']
-
-    self.landing_page.write("<li><img src='" + item_list[0] + "' /><h3>"
-        + image_titles[0] + "</h3></li>")
-    self.landing_page.write("<li><img src='" + item_list[1] + "' /><h3>"
-        + image_titles[1] + "</h3></li></ul>")
-    self.landing_page.write("<ul class='rig columns-2'>")
-    self.landing_page.write("<li><img src='" + item_list[2] + "' /><h3>"
-        + image_titles[2] + "</h3></li>")
-    self.landing_page.write("<li><img src='" + item_list[3] + "' /><h3>"
-        + image_titles[3] + "</h3></li></ul>")
-
-    file_end = """</center></body></html>"""
-    self.landing_page.write(file_end)
-    self.landing_page.close()
-
-
+    
 ################################### Test run  script ####################################
 # wg = WebsiteGenerator(webdir='web')
+# img = "web/2017/04/23/hrrr_fcast/hrrr_fcast.20170423_t00z.2MT_DPT.IND90k.wrfsfcf01.heatmap.png"
+# wg.generateHomePage([img, img, img, img])
 # wg.addSidebarToLandingPage()
 # wg.showWebsite()

@@ -122,7 +122,7 @@ class WeatherData(object):
             if os.path.exists(output_name):
                 continue
 
-            self._addToThreadPool(_doForecastAnimation, (file_list, output_name))
+            self._addToThreadPool(_doForecastAnimation, (file_list, output_name, self.temp_directory))
             self._waitForThreadPool()
 
         self._waitForThreadPool(thread_max=0)
@@ -160,9 +160,8 @@ class WeatherData(object):
                         domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
 
 
-            print "%s exits? %r"%(fcast_file, os.path.exists(fcast_file))
+            # print "%s exits? %r"%(fcast_file, os.path.exists(fcast_file))
             if not os.path.exists(fcast_file):
-                # What if the wanted fcast_file not exist
                 continue
 
             # Append all the compared files
@@ -180,16 +179,9 @@ class WeatherData(object):
                     domain=self.domain,
                     comp_tag=comparator_tag)
 
-        #     if os.path.exists(out_file):
-        #         continue
-
-        #     self._addToThreadPool(_doCompareAnimatedVisualization, (obs_file, fcast_file, out_file))
-        #     self._waitForThreadPool()
-
-        # self._waitForThreadPool(thread_max=0)
         print "Generate the anim viz with %d frame(s)"%(len(obs_files))
 
-        _doCompareAnimatedVisualization(obs_files, fcast_files, out_file)
+        _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, self.temp_directory)
 
         return out_file
 
@@ -314,7 +306,7 @@ def _doCompareVisualization(obs_file, fcast_file, out_file):
     print "Visualizing " + out_file + " is complete"
 
 
-def _doForecastAnimation(fcast_files, output_name):
+def _doForecastAnimation(fcast_files, output_name, temp_directory):
     gobj_list = []
     for fcast in fcast_files:
         if not os.path.exists(fcast):
@@ -322,11 +314,11 @@ def _doForecastAnimation(fcast_files, output_name):
         gobj_list.append(pygrib.open(fcast).select(name='2 metre temperature')[0])
 
     dv = DataVisualizer.DataVisualizer()
-    dv.AnimatedHeatMap(gobj_list, output_name)
+    dv.AnimatedHeatMap(gobj_list, output_name, temp_directory)
     print "Forecast Animation " + output_name + " is complete"
 
 
-def _doCompareAnimatedVisualization(obs_files, fcast_files, out_file):
+def _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, temp_directory):
     gobj_list = []
     dv = DataVisualizer.DataVisualizer()
     dcomp = DataComparator.DataComparator()
@@ -336,7 +328,7 @@ def _doCompareAnimatedVisualization(obs_files, fcast_files, out_file):
         gobj_list.append(grib_msg)
         count += 1
 
-    dv.AnimatedHeatMap(gobj_list, out_file)
+    dv.AnimatedHeatMap(gobj_list, out_file, temp_directory)
     print "Comparison Animation " + out_file + " is complete" 
 
 

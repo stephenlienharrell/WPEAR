@@ -32,8 +32,7 @@ def StartRun(options):
         rtma_obs.VisualizeData()
         # viz_diff_obs = rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
         viz_anim_diff_obs = rtma_obs.VisualizeAnimatedDifference(hrrr_fcast, 'DIF')
-        # viz_diff_obs = rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
-        
+            
         # website        
         wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
         wg.addSidebarToLandingPage()

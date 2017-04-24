@@ -157,6 +157,7 @@ class DataVisualizer():
         """Generate Animated Heatmap with Data from grib_objects
         grib_objects:   a list of grib objects
         file_name:      a string representing the name of generated picture
+        tmep_dir:       temp directory for generated frame image
         """
         frames = []
         filenames = []
@@ -182,7 +183,6 @@ class DataVisualizer():
                 filenames.append('pic_' + str(count) + '.png')
                 f.write("%s\n" % filenames[count])
                 self.Frame(grib_objects[count], "%s/%s" % (working_dir, filenames[count]), vmin, vmax)
-                # print 'Generated ' + filenames[count]
                 count += 1
         finally:
           f.close()
@@ -193,13 +193,7 @@ class DataVisualizer():
 
         os.rename('%s/out.gif' % working_dir, file_name)
 
-        # Remove the tmp files
-#        os.remove('file_list.txt')
-#        for f in filenames:
-#            os.remove(f)
         shutil.rmtree(working_dir)
-
-        # plt.close(fig)
 
 
     def SimplePlot(self, grib_object, file_name):
