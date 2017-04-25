@@ -27,15 +27,20 @@ class RTMAObservations(WeatherData.WeatherData):
         self.output_filename_format = 'rtma_obs.{time}.{vars}.{domain}.2dvaranl_ndfd.grb2'
 
         self.output_filename_format_heatmap_viz = 'rtma_obs.{time}.{vars}.{domain}.2dvaranl_ndfd.heatmap.png'
+        self.output_filename_format_stddev_viz = 'rtma_obs.{time}.{vars}.{domain}.2dvaranl_ndfd.{fcast_tag}.stddev.png'
 
         self.date_format = '%Y%m%d'
 
         self.files_to_download = []
         self.converted_files = []
         self.visualization_heatmap_files = []
+        self.visualization_difference_files = []
+        self.visualization_animated_difference_files = []
+        self.visualization_stddev_files = []
 
         for x in range(0,24):
             self.files_to_download.append(self.download_file_name.format(gmt_plus=x))
+
 
             gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=x)
             converted_file = self.local_directory + '/' + self.output_filename_format.format(
@@ -51,6 +56,7 @@ class RTMAObservations(WeatherData.WeatherData):
         if testing:
             self.files_to_download = [self.download_file_name.format(gmt_plus=0)]
             self.files_to_download.append(self.download_file_name.format(gmt_plus=1))
+            self.files_to_download.append(self.download_file_name.format(gmt_plus=2))
 
         self.var_lookup_table = {}
         self.var_lookup_table['2MTK'] = 'TMP:2 m above ground'
