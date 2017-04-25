@@ -1,4 +1,4 @@
-import webbrowser, os
+import webbrowser, os, datetime
 from os import walk
 
 
@@ -12,16 +12,57 @@ class WebsiteGenerator:
     self.landing_page = open(self.landing_file, 'w+')
     self.sidebar_page = open(self.sidebar_file, 'w+')
     self.webdir = webdir
+    self.now = datetime.datetime.utcnow()
 
 
   def runWebManager(self):
     self.addSidebarToLandingPage()
+
+    curr_file_list = self.generateFileList()
+    self.generateDailyPage(curr_file_list)
 
 
   def showWebsite(self):
     #webbrowser.open_new(self.landing_file)
     pass
 
+  def generateFileList(self):
+    file_list = []
+    list_hour = 0
+    while list_hour < self.now.hour:
+      file_list.append(self.generateSectionTitle(list_hour))
+      for item in rtma_obs.visualization_heatmap_files:
+        if self.inrange(item) == 0:
+          file_list.append(item)
+
+      for item in hrrr_fcast.visualization_heatmap_files:
+        if self.inrange(item) < 18:
+          file_list.append(item)
+
+      list_hour+=1
+
+    return file_list
+
+  def generateSectionTitle(self, list_hour):
+    section_title = "SECTION:" + str(self.now.date()) + " "
+    if list_hour < 10:
+      section_title += "0"
+
+    section_title += str(list_hour) + ":00 UTC"
+    return section_title
+
+
+  def inrange(self, file):
+    file_seg = file.partition('.')
+    datehour_file = file_seg[len(file_seg) - 1]
+    date_file = datehour_file.partition('_')[0]
+    hour_file = datehour_file.partition('_')[2]
+    file_day = date_file[6:8]
+    file_hour = hour_file[1:3]
+
+    diff = (self.now.day - file_day) * 24 + (self.now.hour - file_hour)
+
+    return diff
 
   def addSidebarToLandingPage(self):
     sidebar = """
@@ -198,9 +239,9 @@ class WebsiteGenerator:
     return files
 
 
-  def generateDailyPage(self, file_dir, item_list):
+  def generateDailyPage(self, item_list):
     obs_file = next(item for item in item_list if (len(item)==2) & (item[1]=='obs'))[0]
-    dir = parseDirectory(file_dir, obs_file)
+    dir = self.parseDirectory(self.webdir, obs_file)
     dir = os.path.normpath(dir + 'day.html')
     file_fullpath = os.path.realpath(dir)
     html_file = open(file_fullpath, 'w+')
@@ -218,7 +259,7 @@ class WebsiteGenerator:
         html_file.write("""<br><center><h2><p>""" +  item.split(':')[1] + """</p></h2></center>""")
         continue
       elif len(item) > 1:
-        title = generateTitle(obs_file, item[0])
+        title = self.generateTitle(obs_file, item[0])
         html_file.write("""<p style="float:left;font-size:18pt;text-align:center;min-width:550px;margin-right:3%;">&nbsp;&nbsp;&nbsp;&nbsp;""")
         html_file.write(title + """<img src='""" + item[0] + """' alt='""" + item[1] +
           """' style="""+ image_size + """'></p>""")
@@ -226,39 +267,6 @@ class WebsiteGenerator:
     file_end = """</body></html>"""
     html_file.write(file_end)
     html_file.close()
-
-  def parseDirectory(webdir, file_name):
-    directory = webdir
-    if directory.endswith('/') == False:
-        directory += '/'
-
-    seg = file_name.partition('.')
-    date_part = seg[len(seg)-1]
-
-    year = date_part[:4]
-    month = date_part[4:6]
-    day = date_part[6:8]
-
-    directory+= year + '/' + month + '/' + day + '/'
-    return directory
-
-  def generateTitle(obs_name, file_name):
-    name = ""
-
-    # Observed file processing
-    obs_seg = obs_name.partition('.')
-    datehour_obs = obs_seg[len(obs_seg) - 1]
-    date_obs = datehour_obs.partition('_')[0]
-    hour_obs = datehour_obs.partition('_')[2]
-    obs_hour = hour_obs[1:3]
-
-    #Second file processing
-    file_seg = file_name.partition('.')
-    datehour_file = file_seg[len(obs_seg) - 1]
-    hour_file = datehour_file.partition('_')[2]
-    file_hour = hour_file[1:3]
-
-    diff = (int(obs_hour) - int(file_hour)) % 24
 
   def parseDirectory(self, webdir, file_name):
     directory = webdir
@@ -275,7 +283,7 @@ class WebsiteGenerator:
     directory+= year + '/' + month + '/' + day + '/'
     return directory
 
-  def generateTitle(obs_name, file_name):
+  def generateTitle(self, obs_name, file_name):
     name = ""
 
     # Observed file processing
@@ -287,7 +295,7 @@ class WebsiteGenerator:
 
     #Second file processing
     file_seg = file_name.partition('.')
-    datehour_file = file_seg[len(obs_seg) - 1]
+    datehour_file = file_seg[len(file_seg) - 1]
     hour_file = datehour_file.partition('_')[2]
     file_hour = hour_file[1:3]
 
