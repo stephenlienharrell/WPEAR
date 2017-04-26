@@ -343,8 +343,10 @@ class WebsiteGenerator:
     # file_name = "web/2017/04/23/hrrr_fcast/hrrr_fcast.20170423_t00z.2MT_DPT.IND90k.wrfsfcf01.heatmap.png"
     seg = file_name.split('/')
     directory = ''
-    for i in range(4):
+    i = len(seg)-5
+    for m in range(3):
       directory += seg[i] + '/'
+      i += 1
     return directory
 
 
