@@ -35,9 +35,11 @@ def StartRun(options):
         rtma_obs.VisualizeAnimatedDifference(hrrr_fcast, 'ADIF')
         rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
         
-        wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
-        wg.runWebManager()
-        wg.showWebsite()
+    # not sure how hrrr_fcast/rtma_obs exist out-of-scope
+    # but it works
+    wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
+    wg.runWebManager(hrrr_fcast, rtma_obs)
+
 
 #    for date in hrrr_dates:
 #        print 'Starting HRRR Observations for ' + date.strftime('%Y%m%d')

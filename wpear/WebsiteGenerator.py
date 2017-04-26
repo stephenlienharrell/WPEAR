@@ -14,8 +14,9 @@ class WebsiteGenerator:
     self.webdir = webdir
 
 
-  def runWebManager(self):
-    self.addSidebarToLandingPage()
+  def runWebManager(self, hrrr_fcast, rtma_obs):
+    homepage_url = self.getHomePage(rtma_obs, hrrr_fcast)
+    self.addSidebarToLandingPage(homepage_url)
 
 
   def showWebsite(self):
@@ -23,7 +24,7 @@ class WebsiteGenerator:
     pass
 
 
-  def addSidebarToLandingPage(self):
+  def addSidebarToLandingPage(self, homepage_url):
     sidebar = """
                 <HTML>
                 <HEAD>
@@ -31,10 +32,10 @@ class WebsiteGenerator:
                 </HEAD>
                 <FRAMESET cols=20%,*>
                 <FRAME src="{}" noresize frameborder="0" frameborder="0" scrolling="auto" />
-                <FRAME src="" name="page" noresize frameborder="0" scrolling="auto" />
+                <FRAME src="{}" name="page" noresize frameborder="0" scrolling="auto" />
                 </frameset>
                 <NOFRAMES>
-              """.format(self.sidebar_file.split('/')[-1])
+              """.format(self.sidebar_file.split('/')[-1], homepage_url)
     self.landing_page.write(sidebar)
     self.sidebarHandler()
 
@@ -215,8 +216,8 @@ class WebsiteGenerator:
       if 'SECTION:' in item:
         if item != item_list[0]:
           html_file.write("""<p style="clear: both;"><hr>""")
-        html_file.write("""<br><center><h2><p>""" +  item.split(':')[1] + """</p></h2></center>""")
-        continue
+          html_file.write("""<br><center><h2><p>""" +  item.split(':')[1] + """</p></h2></center>""")
+          continue
         elif len(item) > 1:
           title = generateTitle(obs_file, item[0])
           html_file.write("""<p style="float:left;font-size:18pt;text-align:center;min-width:550px;margin-right:3%;">&nbsp;&nbsp;&nbsp;&nbsp;""")
@@ -274,14 +275,86 @@ class WebsiteGenerator:
     return name
 
 
-  def generateHomePage(self, item_list):
-    # Can make different types of viz with different colors
+  def getHomePage(self, obs, frcast):
+    graphs = obs.GetDemoGraphs(frcast)
+    return self.generateHomePage(graphs, frcast)  
+
+
+  def generateHomePage(self, item_list, frcast):
+    image_titles = ['Observation Visualization', 
+                    'Forcast Visualization', 
+                    'Standard Deviation Visualization', 
+                    'Observation vs Forcast Visualization']
+
+    image_descriptions = {}
+    image_descriptions['observation_viz'] = "Observation at %s"%(self.getDataHour(item_list['observation_viz']))
+    image_descriptions['forecast_viz'] = "Forecast at %s"%(self.getDataHour(item_list['forecast_viz']))
+    image_descriptions['stdv_viz'] = "Observations vs %d-Hour Forecasts Over Time"%(frcast.gap_hour)
+    image_descriptions['animated_diff_viz'] = "Observations vs %d-Hour Forecasts Over Time"%(frcast.gap_hour)
+
+
+    cur_dir = os.getcwd() + '/'
+    dir = self.parseDayDirectory(item_list['forecast_viz'])
+    dir = os.path.normpath(dir + 'demo.html')
+    file_fullpath = os.path.realpath(dir)
+    html_file = open(file_fullpath, 'w+')
+
+    self._writeHomePageHeader(html_file)
+    page_prefix = """
+              <body>
+              <center>
+              <h1>
+                  <br>
+                  WPEAR
+              </h1>
+              <ul class='rig columns-2'>"""
+
+    html_file.write(page_prefix)
+    
+
+    # print item_list['observation_viz']
+    # print item_list['forecast_viz']
+    # print item_list['stdv_viz']
+    # print item_list['animated_diff_viz']
+
+    html_file.write("<li><img src='" + cur_dir + item_list['observation_viz'] + "' alt='observation' /><h3>"
+        + image_titles[0] + "</h3><p>" + image_descriptions['observation_viz'] + "</p></li>")
+    html_file.write("<li><img src='" + cur_dir + item_list['forecast_viz'] + "' alt='forecast' /><h3>"
+        + image_titles[1] + "</h3><p>" + image_descriptions['forecast_viz'] + "</p></li></ul>")
+    html_file.write("<ul class='rig columns-2'>")
+    html_file.write("<li><img src='" + cur_dir + item_list['stdv_viz'] + "' alt='standard deviation'/><h3>"
+        + image_titles[2] + "</h3><p>" + image_descriptions['stdv_viz'] + "</p></li>")
+    html_file.write("<li><img src='" + cur_dir + item_list['animated_diff_viz'] + "' alt='animated difference' /><h3>"
+        + image_titles[3] + "</h3><p>" + image_descriptions['animated_diff_viz'] + "</p></li></u>")
+
+    file_end = """</center></body></html>"""
+    html_file.write(file_end)
+    html_file.close()
+    return dir[4:] ##Return the path for demo.html without "web/" prefix
+
+
+  def getDataHour(self, file_name):
+    arr = file_name.split('/')
+    arr = arr[len(arr)-1].split('.')
+    return arr[1]
+
+
+  def parseDayDirectory(self, file_name):
+    # file_name = "web/2017/04/23/hrrr_fcast/hrrr_fcast.20170423_t00z.2MT_DPT.IND90k.wrfsfcf01.heatmap.png"
+    seg = file_name.split('/')
+    directory = ''
+    for i in range(4):
+      directory += seg[i] + '/'
+    return directory
+
+
+  def _writeHomePageHeader(self, html_file):
     file_head = """
         <html>
           <head>
               <style type="text/css">
                   body {
-                      background-color: #EAEDED
+                      #background-color: #EAEDED
                   }
                   ul.rig {
                       list-style: none;
@@ -307,11 +380,10 @@ class WebsiteGenerator:
                       margin: 0 0 5px;
                   }
                   ul.rig li p {
-                      font-size: .9em;
+                      font-size: 1.2em;
                       line-height: 1.5em;
                       color: #999;
                   }
-
                   /* class for 2 columns */
                   ul.rig.columns-2 li {
                       width: 47.5%; /* this value + 2.5 should = 50% */
@@ -343,34 +415,8 @@ class WebsiteGenerator:
                   }
                   
               </style>
-          </head>
-          <body>
-              <center>
-              <h1>
-                  <br>
-                  WPEAR
-              </h1>
-              <ul class='rig columns-2'>"""
-
-    self.landing_page.write(file_head)
-    image_titles = ['Observation Visualization', 
-                    'Forcast Visualization', 
-                    'Standard Deviation Visualization', 
-                    'Observation vs Forcast Visualization']
-
-    self.landing_page.write("<li><img src='" + item_list[0] + "' /><h3>"
-        + image_titles[0] + "</h3></li>")
-    self.landing_page.write("<li><img src='" + item_list[1] + "' /><h3>"
-        + image_titles[1] + "</h3></li></ul>")
-    self.landing_page.write("<ul class='rig columns-2'>")
-    self.landing_page.write("<li><img src='" + item_list[2] + "' /><h3>"
-        + image_titles[2] + "</h3></li>")
-    self.landing_page.write("<li><img src='" + item_list[3] + "' /><h3>"
-        + image_titles[3] + "</h3></li></ul>")
-
-    file_end = """</center></body></html>"""
-    self.landing_page.write(file_end)
-    self.landing_page.close()
+          </head>"""
+    html_file.write(file_head)
 
 
 ################################### Test run  script ####################################

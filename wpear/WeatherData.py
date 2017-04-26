@@ -4,6 +4,7 @@ import multiprocessing
 import os
 import shutil
 import time
+import glob
 
 import pygrib
 
@@ -294,6 +295,27 @@ class WeatherData(object):
                         (var, function))
 
 
+    def GetDemoGraphs(self, forecast):
+        if not self.obs:
+          raise ValueError('Must call GetDemoGraphs on observations only')
+        item_list = {}
+        list_of_files = glob.glob(self.local_directory + '/*.png')
+        list_of_files.sort()
+        latest_obs_file = list_of_files[len(list_of_files)-1]
+        obs_date = self._GetTimeOfObs(latest_obs_file)
+        fcast_date = obs_date - datetime.timedelta(hours=self.gap_hour)
+        gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
+        fcast_file =  (self.web_directory + fcast_date.strftime(forecast.local_directory_date_format) + 
+                    '/' + forecast.output_filename_format_heatmap_viz.format(
+                    time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
+                    domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
+
+        item_list['forecast_viz'] = fcast_file
+        item_list['observation_viz'] = latest_obs_file
+        item_list['stdv_viz'] = self.visualization_stddev_files[0]
+        item_list['animated_diff_viz'] = self.visualization_animated_difference_files[0]
+        return item_list
+            
                 
     def _addToThreadPool(self, function, args):
         proc = multiprocessing.Process(target=function, args=args)
