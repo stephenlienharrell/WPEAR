@@ -1,6 +1,6 @@
 # Weather Prediction Evaluation and Reporting (WPEAR) _Pronounced whipper_
 
-The goal of this project is to create a tool that compares weather forecasts with corresponding observations and presents the results of real-time comparisons in an accessible way. Currently, the tool uses the High-Resolution Rapid Refresh ([HRRR](https://rapidrefresh.noaa.gov/hrrr/)) products for forecasts and Real-Time Mesoscale Analysis ([RTMA](http://www.nco.ncep.noaa.gov/pmb/products/rtma/)) products for observations. Upon downloading hourly forecasts/observations, the tool processes them by converting them into a common grid format and performs some useful statistical computations. The outcomes of these computations are represented as visualizations or graphs and updated on a website. The tool is designed to perform real-time comparisons and maintain a website that archives the results of these comparisons.
+The goal of this project is to create a tool that compares weather forecasts with corresponding observations and presents the results of real-time comparisons in an accessible way. Currently, the tool uses the High-Resolution Rapid Refresh ([HRRR](https://rapidrefresh.noaa.gov/hrrr/)) products for forecasts and Real-Time Mesoscale Analysis ([RTMA](http://www.nco.ncep.noaa.gov/pmb/products/rtma/)) products for observations. Upon downloading hourly forecasts/observations, the tool processes them by converting them into a common grid format and performs some useful statistical computations. The outcomes of these computations are represented as static or dynamic visualizations or graphs and updated on a website. The tool is designed to perform real-time comparisons and maintain a website that archives the results of these comparisons.
 
 Link to the website : Under Development
 
@@ -93,5 +93,44 @@ WPEARController passes compared result data to DataVisualizer to generated wante
 ### Generate Webs
 After all the data analysis and data visualization is done, WPEARController calls WebsiteGenerator to generate all the html files under web directory. 
 
-## Trouble Shooting 
-Troubleshooting tips and possible next steps
+## FAQs
+* Does the tool need to be manually run each time?
+
+The tool contains an intelligent system that determines the files that it needs to download and perform conversions/comparisons/visualizations on. Though it can be manually run, it is designed to be able to run all the time and archive the results on the website.
+
+
+* Is there a mechanism for the tool to catch-up on previous days if the tool was not run or went down for some reason?
+
+The tool contains an intelligent system that can detect if past downloads/conversions have failed or are missing and perform them.
+
+
+* What types of comparisons can be performed?
+
+The tool, currently, can perform 3 types of comparisons:
+** Difference between a forecast and an observation
+** Standard deviation and means of different forecasts against a corresponding observation
+** Multi-set average for an observation given a specific geographical location
+
+
+* What types of visualizations/graphs can be generated?
+
+Here's a list of visualizations:
+** Static heatmap of a forecast
+** Static heatmap of an observation
+** Dynamic heatmap of different forecasts of an observation (.gif)
+** Static heatmap of the difference between a forecast and an observation
+** Dynamic heatmap of the difference between a 1-hour forecast and its observation for multiple hours (.gif)
+** Mean and Standard deviation of forecasts against the corresponding observation 
+
+
+* When performing the test run, my computer is unresponsive or it is taking too long?
+
+The test run downloads forecasts for 1 hour on 2 days (current day and day before current day). For each hour, it downloads 18 forecasts and 1 observation. Since these files are large (~115 MB each), it can take some time. However, once the conversions are performed, the converted files are much smaller and the downloaded files are deleted. In future runs, the archives are checked before any files are downloaded. The computer can get unresponsive because the conversions have been optimized to use multiple processes (upto 20) to speed up each run of the tool.
+
+
+
+## Possible next steps
+* Using more or different data sets that could be used to compare between forecasts for example
+* Performing other forms of comparisons
+* Creating 3-D visualizations
+* Allowing on-demand comparisons/visualizations to be performed on the website
