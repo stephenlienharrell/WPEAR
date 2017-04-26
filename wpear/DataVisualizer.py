@@ -4,6 +4,8 @@ import os
 import sys
 import pygrib
 import random
+import string
+import shutil
 import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
@@ -20,11 +22,12 @@ class DataVisualizer():
         shapeFile: A string representing the name of shape file
     """
 
-    def __init__(self):
+    def __init__(self, convert_path=None):
         """Return a DataVisualizer generating the data visualization
         """
         # default shapeFile
         self.shapeFile = './shapefile/tl_2013_18_cousub/tl_2013_18_cousub'
+        self.convert_path = convert_path
 
 
     def K2F(self, temperatures):
@@ -65,7 +68,7 @@ class DataVisualizer():
         date = self.GetTime(grib_object)
 
         fig = plt.figure(figsize=(8,8))
-        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])    
 
         m = Basemap(
                 resolution='c', # c, l, i, h, f or None
@@ -151,7 +154,7 @@ class DataVisualizer():
         plt.close(fig)
 
 
-    def AnimatedHeatMap(self, grib_objects, file_name):
+    def AnimatedHeatMap(self, grib_objects, file_name, temp_dir):
         """Generate Animated Heatmap with Data from grib_objects
         grib_objects:   a list of grib objects
         file_name:      a string representing the name of generated picture
@@ -169,26 +172,33 @@ class DataVisualizer():
             count += 1
 
         count = 0
-        f = open('file_list.txt', 'w')
+        working_dir = '%s/%s%s' % (temp_dir, 'frames', ''.join(random.choice(string.lowercase) for x in range(6)))
+        file_list_file = 'file_list.txt'
+        if not os.path.exists(working_dir):
+            os.makedirs(working_dir)
+        f = open('%s/%s' % (working_dir, file_list_file), 'w')
+        try: 
+            # Generate each frame one by one
+            while (count < len(grib_objects)):
+                filenames.append('pic_' + str(count) + '.png')
+                f.write("%s\n" % filenames[count])
+                self.Frame(grib_objects[count], "%s/%s" % (working_dir, filenames[count]), vmin, vmax)
+                # print 'Generated ' + filenames[count]
+                count += 1
+        finally:
+          f.close()
 
-        # Generate each frame one by one
-        if not os.path.exists('frames/'):
-            os.makedirs('frames')
-        while (count < len(grib_objects)):
-            filenames.append('pic_' + str(count) + '.png')
-            f.write("%s\n" % filenames[count])
-            self.Frame(grib_objects[count], filenames[count], vmin, vmax)
-            # print 'Generated ' + filenames[count]
-            count += 1
-        f.close()
 
         # Convert series of static viualization to animated file
-        os.system("convert -delay 60 @file_list.txt {}".format(file_name))
+        os.system("cd {}; {} -delay 60 @{} {}".format(working_dir, self.convert_path, file_list_file, 'out.gif'))
+
+        shutil.move('%s/out.gif' % working_dir, file_name)
 
         # Remove the tmp files
-        os.remove('file_list.txt')
-        for f in filenames:
-            os.remove(f)
+#        os.remove('file_list.txt')
+#        for f in filenames:
+#            os.remove(f)
+        shutil.rmtree(working_dir)
 
         # plt.close(fig)
 
@@ -287,9 +297,53 @@ class DataVisualizer():
         plt.savefig(file_name)
 
 
+    def scatterBar(self, arr, observed_file, file_name):
+        figure = plt.figure()
+        # setting size
+        figure.set_size_inches(8.5, 8.5)
+
+        # plotting obs/fcs
+        f_y = np.asarray(np.trim_zeros(arr[1]))
+        f_x = np.arange(1, f_y.size+1, 1)
+        f_e = np.asarray(np.trim_zeros(arr[2]))
+        plt.errorbar(f_x, f_y, f_e, linestyle='solid', barsabove='true', marker='o', color='orange', capsize=5, label='forecasts')
+
+        o_y = np.full((f_y.size+1), arr[0][0])
+        o_x = np.arange(0, f_y.size+1, 1)
+        o_e = np.full((f_y.size+1), arr[0][1])
+        (plotline, _, barlinecols) = plt.errorbar(o_x, o_y, o_e, linestyle='solid', barsabove='true', marker='x', color='green', capsize=5, label='observation')
+        barlinecols[0].set_linestyle('-.')
+
+        # adding axes properties
+        axes = plotline.axes
+        axes.set_xlabel('Hours prior')
+        axes.set_xticks(o_x)
+        axes.set_autoscalex_on(True)
+
+        axes.set_ylabel('Temperature (Celsius)')
+        axes.set_autoscaley_on(True)
+
+        # adding title
+        datetime = observed_file.split('/')[-1].split('.')[1]
+        date = datetime[:8]
+        time = datetime[10:12]
+        plt.title('Standard deviation of forecasts \n against observation at {}:{} hours'.format(date, time), fontsize = 'x-large')
+
+        # adjusting box size for legend 
+        box = axes.get_position()
+        axes.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+        handles, labels = axes.get_legend_handles_labels()
+        handles = [h[0] for h in handles]
+        plt.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5))
+
+        plt.savefig(file_name, dpi=250, bbox_inches='tight', pad_inches = 0.02)
+        plt.close()
+
+
 
 # Make a DataVisualizer
-v = DataVisualizer()
+# v = DataVisualizer()
 
 #################################
 # Generate static visualization #
