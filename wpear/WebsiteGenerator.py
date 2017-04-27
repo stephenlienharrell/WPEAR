@@ -283,7 +283,7 @@ class WebsiteGenerator:
     ## Get the demo.html's relative path
     relative_day_dir = '/'.join(frcast.date.strftime(frcast.local_directory_date_format).split('/')[:-1])
     demowebpath = relative_day_dir[1:] + '/demo.html'
-    print demowebpath
+    # print demowebpath
     return demowebpath
 
 
@@ -299,8 +299,6 @@ class WebsiteGenerator:
     image_descriptions['stdv_viz'] = "Observations vs %d-Hour Forecasts Over Time"%(frcast.gap_hour)
     image_descriptions['animated_diff_viz'] = "Observations vs %d-Hour Forecasts Over Time"%(frcast.gap_hour)
 
-
-    cur_dir = os.getcwd() + '/'
     day_dir = self.parseDayDirectory(item_list['forecast_viz'])
     file_fullpath = self.webdir + '/' +  day_dir + 'demo.html'
     html_file = open(file_fullpath, 'w+')
@@ -326,14 +324,14 @@ class WebsiteGenerator:
     
 
 
-    html_file.write("<li><img src='" + cur_dir + item_list['observation_viz'] + "' alt='observation' /><h3>"
+    html_file.write("<li><img src='" +  item_list['observation_viz'] + "' alt='observation' /><h3>"
         + image_titles[0] + "</h3><p>" + image_descriptions['observation_viz'] + "</p></li>")
-    html_file.write("<li><img src='" + cur_dir + item_list['forecast_viz'] + "' alt='forecast' /><h3>"
+    html_file.write("<li><img src='" +  item_list['forecast_viz'] + "' alt='forecast' /><h3>"
         + image_titles[1] + "</h3><p>" + image_descriptions['forecast_viz'] + "</p></li></ul>")
     html_file.write("<ul class='rig columns-2'>")
-    html_file.write("<li><img src='" + cur_dir + item_list['stdv_viz'] + "' alt='standard deviation'/><h3>"
+    html_file.write("<li><img src='" +  item_list['stdv_viz'] + "' alt='standard deviation'/><h3>"
         + image_titles[2] + "</h3><p>" + image_descriptions['stdv_viz'] + "</p></li>")
-    html_file.write("<li><img src='" + cur_dir + item_list['animated_diff_viz'] + "' alt='animated difference' /><h3>"
+    html_file.write("<li><img src='" +  item_list['animated_diff_viz'] + "' alt='animated difference' /><h3>"
         + image_titles[3] + "</h3><p>" + image_descriptions['animated_diff_viz'] + "</p></li></u>")
 
     file_end = """</center></body></html>"""
