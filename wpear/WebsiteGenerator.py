@@ -149,15 +149,14 @@ class WebsiteGenerator:
     self._writeSidebarHead()
     self._writeSidebarBodyHeader()
 
-    reldir = os.path.relpath(self.webdir)
-    print 'reldir = {}'.format(reldir)
+    self.webdir = os.path.relpath(self.webdir)
     years = []
-    for (dirpath, dirnames, filenames) in walk(reldir):
+    for (dirpath, dirnames, filenames) in walk(self.webdir):
       years.extend(dirnames)
       break
     years.sort()
     for year in years:
-      yeardir = reldir + '/' + year
+      yeardir = self.webdir + '/' + year
       months = []
       self._writeYearStart(year)
       
@@ -176,7 +175,9 @@ class WebsiteGenerator:
         days.sort()
         for day in days:
           daylink =  monthdir + '/' + day + '/day.html'
-          self._writeDay(day, daylink.split('/', 1)[-1])  
+
+          reldaylink = daylink.split('/')[-4] + '/' + daylink.split('/')[-3] + '/' + daylink.split('/')[-2] + '/' + daylink.split('/')[-1]
+          self._writeDay(day, reldaylink)  
 
         self._writeMonthEnd()
       self._writeYearEnd()
