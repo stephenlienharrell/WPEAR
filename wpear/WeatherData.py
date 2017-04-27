@@ -199,7 +199,6 @@ class WeatherData(object):
     
                 # print "%s exits? %r"%(fcast_file, os.path.exists(fcast_file))
                 if not os.path.exists(fcast_file):
-                    # What if the wanted fcast_file not exist
                     continue
     
                 # Append all the compared files
@@ -215,8 +214,12 @@ class WeatherData(object):
                         var='2MTK', 
                         domain=self.domain,
                         comp_tag=comparator_tag + '.f' + str(gap_hour))
-            
+           
             self.visualization_animated_difference_files.append(out_file)
+
+            if os.path.exists(out_file) and datetime.datetime.now().day != self.date.day:
+                continue
+
     
             if not self.testing:
                 self._addToThreadPool(_doCompareAnimatedVisualization, (obs_files, fcast_files, out_file, self.temp_directory, self.convert_path))
@@ -291,6 +294,9 @@ class WeatherData(object):
           raise ValueError('Must call GetDemoGraphs on observations only')
         item_list = {}
         list_of_files = glob.glob(self.local_directory + '/*.png')
+        if len(list_of_files) == 0:
+            return item_list
+
         list_of_files.sort()
         latest_obs_file = list_of_files[len(list_of_files)-1]
         
