@@ -215,20 +215,6 @@ class WeatherData(object):
 
         self.visualization_animated_difference_files.append(out_file)
 
-        #     if os.path.exists(out_file):
-        #         continue
-
-        #     self._addToThreadPool(_doCompareAnimatedVisualization, (obs_file, fcast_file, out_file))
-        #     self._waitForThreadPool()
-
-        # self._waitForThreadPool(thread_max=0)
-        
-        #Question: need threading? only generate one gif for an hour
-
-        #Issue: what if there's error, missed needed fcast_files?
-
-        #print "Generate the anim viz with %d frame(s)"%(len(obs_files))
-
         _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, self.temp_directory, self.convert_path)
 
         return out_file
@@ -303,16 +289,20 @@ class WeatherData(object):
         list_of_files = glob.glob(self.local_directory + '/*.png')
         list_of_files.sort()
         latest_obs_file = list_of_files[len(list_of_files)-1]
+        ## Get the relative path for obs file under day directory
+        # arr = latest_obs_file.split('/')
+        # latest_obs_file = '/'.join(arr[len(arr)-2:])
+
         obs_date = self._GetTimeOfObs(latest_obs_file)
         fcast_date = obs_date - datetime.timedelta(hours=self.gap_hour)
         gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
-        #fcast_file =  (fcast_date.strftime(forecast.local_directory_date_format) + 
-        #            '/' + forecast.output_filename_format_heatmap_viz.format(
-        #            time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
-        #            domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
-        fcast_file =  (forecast.tag + '/' + forecast.output_filename_format_heatmap_viz.format(
-                    time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
-                    domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
+        fcast_file =  (fcast_date.strftime(forecast.local_directory_date_format) + 
+                   '/' + forecast.output_filename_format_heatmap_viz.format(
+                   time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
+                   domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
+        # fcast_file =  (forecast.tag + '/' + forecast.output_filename_format_heatmap_viz.format(
+        #             time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
+        #             domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
 
         item_list['forecast_viz'] = fcast_file
         item_list['observation_viz'] = latest_obs_file

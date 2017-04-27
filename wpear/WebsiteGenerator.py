@@ -276,8 +276,14 @@ class WebsiteGenerator:
 
 
   def getHomePage(self, obs, frcast):
+    ## Get source files
     graphs = obs.GetDemoGraphs(frcast)
-    return self.generateHomePage(graphs, frcast)  
+    ## Generate home page
+    self.generateHomePage(graphs, frcast)
+    ## Get the demo.html's relative path
+    relative_day_dir = '/'.join(frcast.date.strftime(frcast.local_directory_date_format).split('/')[:-1])
+    demowebpath = relative_day_dir + '/demo.html'
+    return demowebpath
 
 
   def generateHomePage(self, item_list, frcast):
@@ -293,16 +299,9 @@ class WebsiteGenerator:
     image_descriptions['animated_diff_viz'] = "Observations vs %d-Hour Forecasts Over Time"%(frcast.gap_hour)
 
 
-    #day_dir = '/'.join(frcast.date.strftime(frcast.local_directory_date_format).split('/')[:-1])
-
-
     cur_dir = os.getcwd() + '/'
-    dir = self.parseDayDirectory(item_list['forecast_viz'])
-    demowebpath = day_dir + '/demo.html'
-
-    #dir = os.path.normpath(dir + 'demo.html')
-    #file_fullpath = os.path.realpath(dir)
-    file_fullpath = self.webdir + dir + '/demo.html'
+    day_dir = self.parseDayDirectory(item_list['forecast_viz'])
+    file_fullpath = self.webdir + '/' +  day_dir + 'demo.html'
     html_file = open(file_fullpath, 'w+')
 
     self._writeHomePageHeader(html_file)
@@ -317,11 +316,14 @@ class WebsiteGenerator:
 
     html_file.write(page_prefix)
     
+    ## Get relative paths for passed items
+    item_list = self.convertToRelativePathsUnderDayDir(item_list) 
+    print item_list['observation_viz']
+    print item_list['forecast_viz']
+    print item_list['stdv_viz']
+    print item_list['animated_diff_viz']
+    
 
-    # print item_list['observation_viz']
-    # print item_list['forecast_viz']
-    # print item_list['stdv_viz']
-    # print item_list['animated_diff_viz']
 
     html_file.write("<li><img src='" + cur_dir + item_list['observation_viz'] + "' alt='observation' /><h3>"
         + image_titles[0] + "</h3><p>" + image_descriptions['observation_viz'] + "</p></li>")
@@ -336,8 +338,15 @@ class WebsiteGenerator:
     file_end = """</center></body></html>"""
     html_file.write(file_end)
     html_file.close()
-    print demowebpath
-    return demowebpath ##Return the path for demo.html without "web/" prefix
+
+
+  def convertToRelativePathsUnderDayDir(self, file_list):
+    ##file_list is dictionary object
+    for key, file in file_list.iteritems():
+      arr = file.split('/')
+      relative_path = '/'.join(arr[len(arr)-2:])
+      file_list[key] = relative_path
+    return file_list
 
 
   def getDataHour(self, file_name):

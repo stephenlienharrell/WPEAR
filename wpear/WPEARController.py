@@ -18,9 +18,9 @@ def StartRun(options):
         print 'Starting HRRR Forecasts for ' + date.strftime('%Y%m%d')
         hrrr_fcast = HRRRSurfaceForecasts.HRRRSurfaceForecasts(date,
                 VARS, DOMAIN, options, testing=options.testing)
-#        hrrr_fcast.DownloadData()
-#        hrrr_fcast.CleanupDownloads()
-#        hrrr_fcast.VisualizeData()
+        hrrr_fcast.DownloadData()
+        # hrrr_fcast.CleanupDownloads()
+        hrrr_fcast.VisualizeData()
         hrrr_fcast.VisualizeAnimatedForecast()
 
     rtma_dates = [now - one_day_delta, now]
@@ -28,9 +28,9 @@ def StartRun(options):
         print 'Starting RTMA Observations for ' + date.strftime('%Y%m%d')
         rtma_obs = RTMAObservations.RTMAObservations(date,
                 VARS, DOMAIN, options, testing=options.testing)
- #       rtma_obs.DownloadData()
+        rtma_obs.DownloadData()
  #       rtma_obs.CleanupDownloads()
- #       rtma_obs.VisualizeData()
+        rtma_obs.VisualizeData()
         rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
         rtma_obs.VisualizeAnimatedDifference(hrrr_fcast, 'ADIF')
         rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
