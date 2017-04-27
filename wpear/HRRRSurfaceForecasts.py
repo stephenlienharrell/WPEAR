@@ -7,6 +7,8 @@ class HRRRSurfaceForecasts(WeatherData.WeatherData):
 
         self.obs = False
 
+        self.date = date
+
         self.tag = 'hrrr_fcast'
 
         # WRF surface

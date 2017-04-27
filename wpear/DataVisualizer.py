@@ -22,11 +22,12 @@ class DataVisualizer():
         shapeFile: A string representing the name of shape file
     """
 
-    def __init__(self):
+    def __init__(self, convert_path=None):
         """Return a DataVisualizer generating the data visualization
         """
         # default shapeFile
         self.shapeFile = './shapefile/tl_2013_18_cousub/tl_2013_18_cousub'
+        self.convert_path = convert_path
 
 
     def K2F(self, temperatures):
@@ -189,7 +190,7 @@ class DataVisualizer():
 
 
         # Convert series of static viualization to animated file
-        os.system("cd {}; convert -delay 60 @{} {}".format(working_dir, file_list_file, 'out.gif'))
+        os.system("cd {}; {} -delay 60 @{} {}".format(working_dir, self.convert_path, file_list_file, 'out.gif'))
 
         shutil.move('%s/out.gif' % working_dir, file_name)
 

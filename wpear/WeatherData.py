@@ -4,6 +4,7 @@ import multiprocessing
 import os
 import shutil
 import time
+import glob
 
 import pygrib
 
@@ -11,12 +12,6 @@ import DataDownloader
 import DataComparator
 import DataConverter
 import DataVisualizer
-
-THREAD_MAX=20
-MINLAT = 38.22
-MAXLAT = 41.22
-MINLON = -87.79
-MAXLON = -84.79
 
 class WeatherData(object):
 
@@ -28,6 +23,7 @@ class WeatherData(object):
         self.web_directory = options.web_dir
         self.wgrib_path = options.wgrib
         self.egrep_path = options.egrep
+        self.convert_path = options.imconvert
         
         self.temp_directory =  options.download_dir + '/' + self.tag + '/' + date.strftime('%Y%m%d') 
         self.compared_viz_file_format = '{obs_tag}.{obs_date}.{obs_extra_info}_{fcast_tag}.{fcast_date}.{fcast_extra_info}f{fcast_number}_{var}.{domain}.{comp_tag}.png'
@@ -35,7 +31,12 @@ class WeatherData(object):
         
         self.compared_viz_animated_file_format = '{obs_tag}.{obs_extra_info}_{fcast_tag}.{fcast_extra_info}_{var}.{domain}.{comp_tag}.gif'
         self.gap_hour = 1
+        self.maxlat = options.maxlat
+        self.maxlon = options.maxlon
+        self.minlon = options.minlon
+        self.minlat = options.minlat
 
+        self.thread_max = options.threads
         self.threads = []
         self.thread_count = 0
 
@@ -65,7 +66,7 @@ class WeatherData(object):
 
             self._addToThreadPool(_doDownload, (self.url, file_directory, self.temp_directory,
                 self.wgrib_path, self.egrep_path, input_file, 
-                self.var_lookup_table.values(), MINLAT, MAXLAT, MINLON, MAXLON,
+                self.var_lookup_table.values(), self.minlat, self.maxlat, self.minlon, self.maxlon,
                 converted_file, self.temp_directory + '/converted'))
             self._waitForThreadPool()
 
@@ -106,7 +107,8 @@ class WeatherData(object):
             if os.path.exists(output_name):
                 continue
 
-            self._addToThreadPool(_doForecastAnimation, (file_list, output_name, self.temp_directory))
+            self._addToThreadPool(_doForecastAnimation, (file_list, output_name,
+                self.temp_directory, self.convert_path))
             self._waitForThreadPool()
 
         self._waitForThreadPool(thread_max=0)
@@ -213,21 +215,7 @@ class WeatherData(object):
 
         self.visualization_animated_difference_files.append(out_file)
 
-        #     if os.path.exists(out_file):
-        #         continue
-
-        #     self._addToThreadPool(_doCompareAnimatedVisualization, (obs_file, fcast_file, out_file))
-        #     self._waitForThreadPool()
-
-        # self._waitForThreadPool(thread_max=0)
-        
-        #Question: need threading? only generate one gif for an hour
-
-        #Issue: what if there's error, missed needed fcast_files?
-
-        #print "Generate the anim viz with %d frame(s)"%(len(obs_files))
-
-        _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, self.temp_directory)
+        _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, self.temp_directory, self.convert_path)
 
         return out_file
 
@@ -300,6 +288,31 @@ class WeatherData(object):
                         (var, function))
 
 
+    def GetDemoGraphs(self, forecast):
+        if not self.obs:
+          raise ValueError('Must call GetDemoGraphs on observations only')
+        item_list = {}
+        list_of_files = glob.glob(self.local_directory + '/*.png')
+        list_of_files.sort()
+        latest_obs_file = list_of_files[len(list_of_files)-1]
+        
+        obs_date = self._GetTimeOfObs(latest_obs_file)
+        fcast_date = obs_date - datetime.timedelta(hours=self.gap_hour)
+        gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
+        fcast_file =  (fcast_date.strftime(forecast.local_directory_date_format) + 
+                   '/' + forecast.output_filename_format_heatmap_viz.format(
+                   time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
+                   domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
+        # fcast_file =  (forecast.tag + '/' + forecast.output_filename_format_heatmap_viz.format(
+        #             time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
+        #             domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
+
+        item_list['forecast_viz'] = fcast_file
+        item_list['observation_viz'] = latest_obs_file
+        item_list['stdv_viz'] = self.visualization_stddev_files[0]
+        item_list['animated_diff_viz'] = self.visualization_animated_difference_files[0]
+        return item_list
+            
                 
     def _addToThreadPool(self, function, args):
         proc = multiprocessing.Process(target=function, args=args)
@@ -308,9 +321,13 @@ class WeatherData(object):
         self.thread_count += 1
 
         
-    def _waitForThreadPool(self, thread_max=THREAD_MAX - 1):
+    def _waitForThreadPool(self, thread_max=None):
+        if thread_max is None:
+            thread_limit = self.thread_max - 1
+        else:
+            thread_limit = thread_max
         count = 0
-        while len(self.threads) > thread_max:
+        while len(self.threads) > thread_limit:
             time.sleep(.1)
             if count > len(self.threads) - 1:
                 count = 0
@@ -356,6 +373,8 @@ def _doStandardDeviationVisualization(observed_file, forecast_files, output_name
     arr = dc.stddev(forecast_files, observed_file, var)
     dv = DataVisualizer.DataVisualizer()
     dv.scatterBar(arr, observed_file, output_name)
+    print "Visualizing " + output_name + " is complete"
+
 
 def _doCompareVisualization(obs_file, fcast_file, out_file):
     visualizer = DataVisualizer.DataVisualizer()
@@ -365,21 +384,21 @@ def _doCompareVisualization(obs_file, fcast_file, out_file):
     print "Visualizing " + out_file + " is complete"
 
 
-def _doForecastAnimation(fcast_files, output_name, temp_dir):
+def _doForecastAnimation(fcast_files, output_name, temp_dir, convert_path):
     gobj_list = []
     for fcast in fcast_files:
         if not os.path.exists(fcast):
             return
         gobj_list.append(pygrib.open(fcast).select(name='2 metre temperature')[0])
 
-    dv = DataVisualizer.DataVisualizer()
+    dv = DataVisualizer.DataVisualizer(convert_path=convert_path)
     dv.AnimatedHeatMap(gobj_list, output_name, temp_dir)
     print "Forecast Animation " + output_name + " is complete"
 
 
-def _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, temp_dir):
+def _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, temp_dir, convert_path):
     gobj_list = []
-    dv = DataVisualizer.DataVisualizer()
+    dv = DataVisualizer.DataVisualizer(convert_path=convert_path)
     dcomp = DataComparator.DataComparator()
     count = 0
     while count < len(obs_files):
