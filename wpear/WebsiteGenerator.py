@@ -77,7 +77,7 @@ class WebsiteGenerator:
         for sub_dir in dir:
           tmp_dir = os.path.normpath(root + '/' + sub_dir + '/*.png')
           list_of_files += glob.glob(tmp_dir)
-          list_of_files.sort()
+          list_of_files.sort(reverse=True)
 
     for item in list_of_files:
       if check in item:
