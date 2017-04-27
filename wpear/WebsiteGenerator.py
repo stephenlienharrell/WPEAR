@@ -1,4 +1,4 @@
-import webbrowser, os
+import webbrowser, os, datetime
 from os import walk
 import glob
 
@@ -12,15 +12,13 @@ class WebsiteGenerator:
     self.landing_page = open(self.landing_file, 'w+')
     self.sidebar_page = open(self.sidebar_file, 'w+')
     self.webdir = webdir
+    self.now = datetime.datetime.utcnow()
 
 
   def runWebManager(self, hrrr_fcast, rtma_obs):
-<<<<<<<
+
     homepage_url = self.getHomePage(rtma_obs, hrrr_fcast)
     self.addSidebarToLandingPage(homepage_url)
-=======
-  def runWebManager(self):
-    self.addSidebarToLandingPage()
 
     now = datetime.datetime.utcnow()
     first_dir = self.getFirstDay()
@@ -38,9 +36,8 @@ class WebsiteGenerator:
         end_hour = 24
       else:
         end_hour = now.hour
->>>>>>>
 
-      curr_file_list = self.generateFileList(now, day, end_hour, fcast_list, rtma_list)
+      curr_file_list = self.generateFileList(day, end_hour, fcast_list, rtma_list)
       print curr_file_list
       self.generateDailyPage(curr_file_list)
 
@@ -50,8 +47,7 @@ class WebsiteGenerator:
     #webbrowser.open_new(self.landing_file)
     pass
 
-<<<<<<<
-=======
+
   def generateFileList(self, day, end_hour, hrrr_fcast, rtma_obs):
     file_list = []
     list_hour = 0
@@ -68,19 +64,7 @@ class WebsiteGenerator:
           file_list.append([item, "fcast"])
 
       list_hour += 1
->>>>>>>
 
-<<<<<<<
-  def addSidebarToLandingPage(self, homepage_url):
-    sidebar = """
-                <HTML>
-                <HEAD>
-                  <TITLE>Weather Prediction Evaluation and Reporting (WPEAR)</TITLE>
-                </HEAD>
-                <FRAMESET cols=20%,*>
-                <FRAME src="{}" noresize frameborder="0" frameborder="0" scrolling="auto" />
-                <FRAME src="{}" name="page" noresize frameborder="0" scrolling="auto" />
-=======
     return file_list
 
   def generatePNGList(self, check, pr_dir):
@@ -143,7 +127,16 @@ class WebsiteGenerator:
 
     return diff
 
->>>>>>>
+
+  def addSidebarToLandingPage(self, homepage_url):
+    sidebar = """
+                <HTML>
+                <HEAD>
+                  <TITLE>Weather Prediction Evaluation and Reporting (WPEAR)</TITLE>
+                </HEAD>
+                <FRAMESET cols=20%,*>
+                <FRAME src="{}" noresize frameborder="0" frameborder="0" scrolling="auto" />
+                <FRAME src="{}" name="page" noresize frameborder="0" scrolling="auto" />
                 </frameset>
                 <NOFRAMES>
               """.format(self.sidebar_file.split('/')[-1], homepage_url)
@@ -310,17 +303,12 @@ class WebsiteGenerator:
     return files
 
 
-<<<<<<<
-  def generateDailyPage(self, file_dir, item_list):
-    obs_file = next(item for item in item_list if (len(item)==2) & (item[1]=='obs'))[0]
-    dir = parseDirectory(file_dir, obs_file)
-=======
   def generateDailyPage(self, item_list):
+    print 'item_list = {}'.format(item_list)
     list_hour = -1
     dir_file = next(item for item in item_list if (len(item) == 2))[0]
     dir = self.parseDirectory(self.webdir, dir_file)
     img_src_dir = os.path.normpath(dir)
->>>>>>>
     dir = os.path.normpath(dir + 'day.html')
     file_fullpath = os.path.realpath(dir)
     html_file = open(file_fullpath, 'w+')
@@ -335,15 +323,6 @@ class WebsiteGenerator:
       if 'SECTION:' in item:
         if item != item_list[0]:
           html_file.write("""<p style="clear: both;"><hr>""")
-<<<<<<<
-          html_file.write("""<br><center><h2><p>""" +  item.split(':')[1] + """</p></h2></center>""")
-          continue
-        elif len(item) > 1:
-          title = generateTitle(obs_file, item[0])
-          html_file.write("""<p style="float:left;font-size:18pt;text-align:center;min-width:550px;margin-right:3%;">&nbsp;&nbsp;&nbsp;&nbsp;""")
-          html_file.write(title + """<img src='""" + item[0] + """' alt='""" + item[1] +
-              """' style="""+ image_size + """'></p>""")
-=======
         html_file.write("""<br><center><h2><p>""" + item.split("SECTION:")[1] + """</p></h2></center>""")
         list_hour += 1
         continue
@@ -353,12 +332,10 @@ class WebsiteGenerator:
           """<p style="float:left;font-size:18pt;text-align:center;min-width:300px;max-width:600px;margin-left:2%;margin-right:2%;">""")
         html_file.write(title + """<img src='""" + os.path.relpath(item[0], img_src_dir) + """' alt='""" + item[1] +
                         """' style=""" + image_size + """'></p>""")
->>>>>>>
 
     file_end = """</body></html>"""
     html_file.write(file_end)
     html_file.close()
-
 
   def parseDirectory(self, webdir, file_name):
     directory = webdir
@@ -375,32 +352,9 @@ class WebsiteGenerator:
     directory += year + '/' + month + '/' + day + '/'
     return directory
 
-<<<<<<<
-  
-  def generateTitle(obs_name, file_name):
-=======
   def generateTitle(self, obs_hour, file_name):
->>>>>>>
     name = ""
-<<<<<<<
-
-    # Observed file processing
-    obs_seg = obs_name.partition('.')
-    datehour_obs = obs_seg[len(obs_seg) - 1]
-    date_obs = datehour_obs.partition('_')[0]
-    hour_obs = datehour_obs.partition('_')[2]
-    obs_hour = hour_obs[1:3]
-
-    #Second file processing
-    file_seg = file_name.partition('.')
-    datehour_file = file_seg[len(obs_seg) - 1]
-    hour_file = datehour_file.partition('_')[2]
-    file_hour = hour_file[1:3]
-
-    diff = (int(obs_hour) - int(file_hour)) % 24
-=======
     # Second file processing
->>>>>>>
 
     if "fcast" in file_name:
       file_seg = file_name.partition("wrfsfc")[2]
