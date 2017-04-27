@@ -293,10 +293,16 @@ class WebsiteGenerator:
     image_descriptions['animated_diff_viz'] = "Observations vs %d-Hour Forecasts Over Time"%(frcast.gap_hour)
 
 
+    #day_dir = '/'.join(frcast.date.strftime(frcast.local_directory_date_format).split('/')[:-1])
+
+
     cur_dir = os.getcwd() + '/'
     dir = self.parseDayDirectory(item_list['forecast_viz'])
-    dir = os.path.normpath(dir + 'demo.html')
-    file_fullpath = os.path.realpath(dir)
+    demowebpath = day_dir + '/demo.html'
+
+    #dir = os.path.normpath(dir + 'demo.html')
+    #file_fullpath = os.path.realpath(dir)
+    file_fullpath = self.webdir + dir + '/demo.html'
     html_file = open(file_fullpath, 'w+')
 
     self._writeHomePageHeader(html_file)
@@ -330,7 +336,8 @@ class WebsiteGenerator:
     file_end = """</center></body></html>"""
     html_file.write(file_end)
     html_file.close()
-    return dir[4:] ##Return the path for demo.html without "web/" prefix
+    print demowebpath
+    return demowebpath ##Return the path for demo.html without "web/" prefix
 
 
   def getDataHour(self, file_name):
