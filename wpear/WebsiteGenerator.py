@@ -282,7 +282,8 @@ class WebsiteGenerator:
     self.generateHomePage(graphs, frcast)
     ## Get the demo.html's relative path
     relative_day_dir = '/'.join(frcast.date.strftime(frcast.local_directory_date_format).split('/')[:-1])
-    demowebpath = relative_day_dir + '/demo.html'
+    demowebpath = relative_day_dir[1:] + '/demo.html'
+    print demowebpath
     return demowebpath
 
 

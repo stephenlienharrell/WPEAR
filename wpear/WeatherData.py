@@ -289,10 +289,7 @@ class WeatherData(object):
         list_of_files = glob.glob(self.local_directory + '/*.png')
         list_of_files.sort()
         latest_obs_file = list_of_files[len(list_of_files)-1]
-        ## Get the relative path for obs file under day directory
-        # arr = latest_obs_file.split('/')
-        # latest_obs_file = '/'.join(arr[len(arr)-2:])
-
+        
         obs_date = self._GetTimeOfObs(latest_obs_file)
         fcast_date = obs_date - datetime.timedelta(hours=self.gap_hour)
         gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
