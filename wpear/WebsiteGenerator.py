@@ -18,6 +18,8 @@ class WebsiteGenerator:
   def runWebManager(self, hrrr_fcast, rtma_obs):
 
     homepage_url = self.getHomePage(rtma_obs, hrrr_fcast)
+    if homepage_url is None:
+        return
     self.addSidebarToLandingPage(homepage_url)
 
     now = datetime.datetime.utcnow()
@@ -38,7 +40,7 @@ class WebsiteGenerator:
         end_hour = now.hour
 
       curr_file_list = self.generateFileList(day, end_hour, fcast_list, rtma_list)
-      print curr_file_list
+      #print curr_file_list
       self.generateDailyPage(curr_file_list)
 
       day += 1
@@ -96,7 +98,7 @@ class WebsiteGenerator:
 
     lowest_dir = os.path.normpath(lowest_dir)
 
-    print lowest_dir
+    #print lowest_dir
     return lowest_dir
 
   def generateSectionTitle(self, list_date, list_hour):
@@ -307,9 +309,17 @@ class WebsiteGenerator:
 
 
   def generateDailyPage(self, item_list):
-    print 'item_list = {}'.format(item_list)
+    #print 'item_list = {}'.format(item_list)
     list_hour = -1
-    dir_file = next(item for item in item_list if (len(item) == 2))[0]
+
+    dir_file = None
+    for item in item_list:
+        if len(item) == 2:
+            dir_file = item[0]
+            break
+    if dir_file is None:
+        return
+    #dir_file = next(item for item in item_list if (len(item) == 2))[0]
     dir = self.parseDirectory(self.webdir, dir_file)
     img_src_dir = os.path.normpath(dir)
     dir = os.path.normpath(dir + 'day.html')
@@ -377,6 +387,8 @@ class WebsiteGenerator:
   def getHomePage(self, obs, frcast):
     ## Get source files
     graphs = obs.GetDemoGraphs(frcast)
+    if len(graphs) == 0:
+        return None
     ## Generate home page
     self.generateHomePage(graphs, frcast)
     ## Get the demo.html's relative path
@@ -416,10 +428,10 @@ class WebsiteGenerator:
     
     ## Get relative paths for passed items
     item_list = self.convertToRelativePathsUnderDayDir(item_list) 
-    print item_list['observation_viz']
-    print item_list['forecast_viz']
-    print item_list['stdv_viz']
-    print item_list['animated_diff_viz']
+    #print item_list['observation_viz']
+    #print item_list['forecast_viz']
+    #print item_list['stdv_viz']
+    #print item_list['animated_diff_viz']
     
 
 
