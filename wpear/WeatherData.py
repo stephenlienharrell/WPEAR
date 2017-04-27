@@ -24,17 +24,18 @@ class WeatherData(object):
         self.wgrib_path = options.wgrib
         self.egrep_path = options.egrep
         self.convert_path = options.imconvert
+        self.testing = options.testing
         
         self.temp_directory =  options.download_dir + '/' + self.tag + '/' + date.strftime('%Y%m%d') 
         self.compared_viz_file_format = '{obs_tag}.{obs_date}.{obs_extra_info}_{fcast_tag}.{fcast_date}.{fcast_extra_info}f{fcast_number}_{var}.{domain}.{comp_tag}.png'
         self.compared_viz_directory = self.web_directory + '/%Y/%m/%d/{obs_tag}.{fcast_tag}.{comp_tag}'
         
         self.compared_viz_animated_file_format = '{obs_tag}.{obs_extra_info}_{fcast_tag}.{fcast_extra_info}_{var}.{domain}.{comp_tag}.gif'
-        self.gap_hour = 1
         self.maxlat = options.maxlat
         self.maxlon = options.maxlon
         self.minlon = options.minlon
         self.minlat = options.minlat
+        self.gap_hour = 1
 
         self.thread_max = options.threads
         self.threads = []
@@ -176,50 +177,53 @@ class WeatherData(object):
         obs_files = []
         fcast_files = []
 
-        for obs_file in self.converted_files:
-            obs_date = self._GetTimeOfObs(obs_file)
-            out_dir = obs_date.strftime(self.compared_viz_directory)
-            out_dir = out_dir.format(obs_tag=self.tag, fcast_tag=forecast.tag, comp_tag=comparator_tag)
-            if not os.path.exists(out_dir):
-                os.makedirs(out_dir)
 
-            if not os.path.exists(obs_file):
-                continue
-            # print "converted file %s and chose date %s"%(obs_file, obs_date)
-            fcast_date = obs_date - datetime.timedelta(hours=self.gap_hour)
+        for gap_hour in range(1,19):
+            for obs_file in self.converted_files:
+                obs_date = self._GetTimeOfObs(obs_file)
+                out_dir = obs_date.strftime(self.compared_viz_directory)
+                out_dir = out_dir.format(obs_tag=self.tag, fcast_tag=forecast.tag, comp_tag=comparator_tag)
+                if not os.path.exists(out_dir):
+                    os.makedirs(out_dir)
 
-            gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
-            fcast_file =  (self.web_directory + fcast_date.strftime(forecast.local_directory_date_format) + 
-                        '/' + forecast.output_filename_format.format(
-                        time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
-                        domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
+                if not os.path.exists(obs_file):
+                   continue
+                # print "converted file %s and chose date %s"%(obs_file, obs_date)
+                fcast_date = obs_date - datetime.timedelta(hours=gap_hour)
 
-            # print "%s exits? %r"%(fcast_file, os.path.exists(fcast_file))
-            if not os.path.exists(fcast_file):
-                # What if the wanted fcast_file not exist
-                continue
-
-            # Append all the compared files
-            fcast_files.append(fcast_file)
-            obs_files.append(obs_file)
-
-        
-        out_file = out_dir + '/' + self.compared_viz_animated_file_format.format(
-                    obs_tag=self.tag, 
-                    obs_extra_info=self.extra_info, 
-                    fcast_tag=forecast.tag, 
-                    fcast_extra_info=forecast.extra_info,
-                    var='2MTK', 
-                    domain=self.domain,
-                    comp_tag=comparator_tag)
-
-        self.visualization_animated_difference_files.append(out_file)
-
-        _doCompareAnimatedVisualization(obs_files, fcast_files, out_file, self.temp_directory, self.convert_path)
-
-        return out_file
-
+                gmt_plus = 't{gmt_plus:02d}z'.format(gmt_plus=fcast_date.hour)
+                fcast_file =  (self.web_directory + fcast_date.strftime(forecast.local_directory_date_format) + 
+                            '/' + forecast.output_filename_format.format(
+                            time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
+                            domain=forecast.domain, forecast_number=gap_hour, extra_info=forecast.extra_info))
     
+                # print "%s exits? %r"%(fcast_file, os.path.exists(fcast_file))
+                if not os.path.exists(fcast_file):
+                    # What if the wanted fcast_file not exist
+                    continue
+    
+                # Append all the compared files
+                fcast_files.append(fcast_file)
+                obs_files.append(obs_file)
+    
+            
+            out_file = out_dir + '/' + self.compared_viz_animated_file_format.format(
+                        obs_tag=self.tag, 
+                        obs_extra_info=self.extra_info, 
+                        fcast_tag=forecast.tag, 
+                        fcast_extra_info=forecast.extra_info,
+                        var='2MTK', 
+                        domain=self.domain,
+                        comp_tag=comparator_tag + '.f' + str(gap_hour))
+            
+            self.visualization_animated_difference_files.append(out_file)
+    
+            if not self.testing:
+                self._addToThreadPool(_doCompareAnimatedVisualization, (obs_files, fcast_files, out_file, self.temp_directory, self.convert_path))
+            self._waitForThreadPool()
+
+        self._waitForThreadPool(thread_max=0)
+
     def VisualizeDifference(self, forecast, comparator_tag):
         print "Starting Data Comparison"
         needed_vars = ['vars', 'converted_files', 'compared_viz_directory', 'tag', 'web_directory', 
