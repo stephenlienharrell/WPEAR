@@ -3,10 +3,7 @@ from os import walk
 import glob
 
 class WebsiteGenerator:
-
-  
   def __init__(self, webdir, landing_file='index.html', sidebar_file='sidebar.html'):
-    
     self.landing_file = webdir + '/' + landing_file
     self.sidebar_file = webdir + '/' + sidebar_file
     self.landing_page = open(self.landing_file, 'w+')
@@ -14,44 +11,43 @@ class WebsiteGenerator:
     self.webdir = webdir
     self.now = datetime.datetime.utcnow()
 
+    def runWebManager(self, hrrr_fcast, rtma_obs):
+      homepage_url = self.getHomePage(rtma_obs, hrrr_fcast)
+      self.addSidebarToLandingPage(homepage_url)
 
-  def runWebManager(self, hrrr_fcast, rtma_obs):
-    homepage_url = self.getHomePage(rtma_obs, hrrr_fcast)
-    self.addSidebarToLandingPage(homepage_url)
+      now = datetime.datetime.utcnow()
+      first_dir = self.getFirstDay()
+      first_day = first_dir[len(first_dir) - 2:]
+      # print first_day
+      day = int(first_day)
 
-    now = datetime.datetime.utcnow()
-    first_dir = self.getFirstDay()
-    first_day = first_dir[len(first_dir) - 2:]
-    # print first_day
-    day = int(first_day)
+      dir = first_dir[:len(first_dir) - 2]
 
-    dir = first_dir[:len(first_dir) - 2]
+      while day <= now.day:
+        print day
+        diff_list = self.generatePNGList('ADIF', dir, '/*.gif')
+        fcast_list = self.generatePNGList('hrrr_fcast', dir, '/*.gif')
+        rtma_list = self.generatePNGList('rtma_obs', dir, '/*.png')
+        std_dev_list = self.generatePNGList('stddev', dir, '/*.png')
+        # print diff_list
+        if day != now.day:
+          end_hour = 24
+        else:
+          end_hour = now.hour
 
-    while day <= now.day:
-      print day
-      diff_list = self.generatePNGList('ADIF', dir, '/*.gif')
-      fcast_list = self.generatePNGList('hrrr_fcast', dir, '/*.gif')
-      rtma_list = self.generatePNGList('rtma_obs', dir, '/*.png')
-      std_dev_list = self.generatePNGList('stddev', dir, '/*.png')
-      #print diff_list
-      if day != now.day:
-        end_hour = 24
-      else:
-        end_hour = now.hour
+        adif_list = []
+        adif_list.append("SECTION:Animated Difference GIFs")
+        for item in diff_list:
+          adif_list.append([item, "diff"])
 
-      adif_list = []
-      adif_list.append("SECTION:Animated Difference GIFs")
-      for item in diff_list:
-        adif_list.append([item, "diff"])
+        curr_file_list = self.generateFileList(day, end_hour, fcast_list, rtma_list, std_dev_list)
+        # print curr_file_list, adif_list
+        self.generateDailyPage(adif_list, curr_file_list)
 
-      curr_file_list = self.generateFileList(day, end_hour, fcast_list, rtma_list, std_dev_list)
-      #print curr_file_list, adif_list
-      self.generateDailyPage(adif_list, curr_file_list)
-
-      day += 1
+        day += 1
 
   def showWebsite(self):
-    #webbrowser.open_new(self.landing_file)
+    # webbrowser.open_new(self.landing_file)
     pass
 
   def generateFileList(self, day, end_hour, hrrr_fcast, rtma_obs, std_dev):
@@ -150,8 +146,6 @@ class WebsiteGenerator:
     self.landing_page.write(sidebar)
     self.sidebarHandler()
 
-
-
   def sidebarHandler(self):
     self._writeSidebarHead()
     self._writeSidebarBodyHeader()
@@ -165,7 +159,7 @@ class WebsiteGenerator:
       yeardir = self.webdir + '/' + year
       months = []
       self._writeYearStart(year)
-      
+
       for (ydirpath, ydirnames, yfilenames) in walk(yeardir):
         months.extend(ydirnames)
         break
@@ -180,8 +174,8 @@ class WebsiteGenerator:
           break
         days.sort()
         for day in days:
-          daylink =  monthdir + '/' + day + '/day.html'
-          self._writeDay(day, daylink.split('/', 1)[-1])  
+          daylink = monthdir + '/' + day + '/day.html'
+          self._writeDay(day, daylink.split('/', 1)[-1])
 
         self._writeMonthEnd()
       self._writeYearEnd()
@@ -210,9 +204,6 @@ class WebsiteGenerator:
 
     self._writeSidebarBodyFooter()
 
-
-
-
   def _writeSidebarHead(self):
     head = """
           <!DOCTYPE html>
@@ -228,9 +219,8 @@ class WebsiteGenerator:
             }
             </style>
           </head> """
-    self.sidebar_page.write(head)      
+    self.sidebar_page.write(head)
 
-   
   def _writeSidebarBodyHeader(self, title='WPEAR'):
     entry = """
               <body>
@@ -240,8 +230,7 @@ class WebsiteGenerator:
                 </div>
                 <div data-role="main" class="ui-content">
                   <h2>Calendar</h2>""" % (title)
-    self.sidebar_page.write(entry)    
-
+    self.sidebar_page.write(entry)
 
   def _writeSidebarBodyFooter(self):
     exit = """
@@ -250,12 +239,11 @@ class WebsiteGenerator:
                 <h1>Created by: Stephen Harrell,  <br/> Lala Vaishno De,  <br/> Mengxue Luo,  <br/> Dhairya Doshi</h1>
               </div>
 
-            </div> 
+            </div>
 
           </body>
           </html>"""
     self.sidebar_page.write(exit)
-
 
   def _writeYearStart(self, year):
     text = """
@@ -264,22 +252,19 @@ class WebsiteGenerator:
               <ul data-role="listview">""" % (year)
     self.sidebar_page.write(text)
 
-
   def _writeYearEnd(self):
     text = """
               </ul>
             </div>"""
     self.sidebar_page.write(text)
 
-
   def _writeMonthStart(self, month):
     text = """
               <div data-role="collapsible">
-                <h4>%s</h4>    
+                <h4>%s</h4>
                   <ul data-role="listview">
                     <div data-role="controlgroup" data-type="horizontal"  >""" % (month)
     self.sidebar_page.write(text)
-
 
   def _writeMonthEnd(self):
     text = """
@@ -288,27 +273,24 @@ class WebsiteGenerator:
             </div>"""
     self.sidebar_page.write(text)
 
-
   def _writeDay(self, day, url):
     text = """
               <a target="page" href="%s" data-role="button" class="custom-btn">%s</a></li>""" % (url, day)
     self.sidebar_page.write(text)
 
-  
   def getLocalDirs(self, path):
     dirs = []
-    for(dirpath, dirnames, filenames) in walk(path):
+    for (dirpath, dirnames, filenames) in walk(path):
       dirs.extend(dirnames)
       break
     return dirs
 
-  def getLocalFiles(self, path):  
+  def getLocalFiles(self, path):
     files = []
-    for(dirpath, dirnames, filenames) in walk(path):
+    for (dirpath, dirnames, filenames) in walk(path):
       files.extend(filenames)
       break
     return files
-
 
   def generateDailyPage(self, adiff_list, item_list):
     list_hour = -1
@@ -343,8 +325,9 @@ class WebsiteGenerator:
         html_file.write(
           """<p style="float:left;font-size:18pt;text-align:center;""" +
           """min-width:500px;max-width:550px;min-height:700px;max-height:800px;width:40%;margin-left:2%;margin-right:2%;">""")
-        html_file.write(title + """<img src='""" + os.path.relpath(item[0], img_src_dir) + """' alt='""" + item[1] +
-                        """' style=""" + image_size + """'></p>""")
+        html_file.write(
+          title + """<img src='""" + os.path.relpath(item[0], img_src_dir) + """' alt='""" + item[1] +
+          """' style=""" + image_size + """'></p>""")
     html_file.write("""<p style="clear: both;"><hr>""")
 
     for item in item_list:
@@ -365,8 +348,9 @@ class WebsiteGenerator:
         else:
           html_file.write(
             """min-width:500px;max-width:550px;min-height:700px;max-height:800px;width:43%;margin-right:2%;margin-left:2%">""")
-        html_file.write(title + """<img src='""" + os.path.relpath(item[0], img_src_dir) + """' alt='""" + item[1] +
-                        """' style=""" + image_size + """'></p>""")
+        html_file.write(
+          title + """<img src='""" + os.path.relpath(item[0], img_src_dir) + """' alt='""" + item[1] +
+          """' style=""" + image_size + """'></p>""")
 
     file_end = """</body></html>"""
     html_file.write(file_end)
@@ -429,21 +413,20 @@ class WebsiteGenerator:
     # print demowebpath
     return demowebpath
 
-
   def generateHomePage(self, item_list, frcast):
-    image_titles = ['Observation Visualization', 
-                    'Forcast Visualization', 
-                    'Standard Deviation Visualization', 
+    image_titles = ['Observation Visualization',
+                    'Forcast Visualization',
+                    'Standard Deviation Visualization',
                     'Observation vs Forcast Visualization']
 
     image_descriptions = {}
-    image_descriptions['observation_viz'] = "Observation at %s"%(self.getDataHour(item_list['observation_viz']))
-    image_descriptions['forecast_viz'] = "Forecast at %s"%(self.getDataHour(item_list['forecast_viz']))
-    image_descriptions['stdv_viz'] = "Observations vs %d-Hour Forecasts Over Time"%(frcast.gap_hour)
-    image_descriptions['animated_diff_viz'] = "Observations vs %d-Hour Forecasts Over Time"%(frcast.gap_hour)
+    image_descriptions['observation_viz'] = "Observation at %s" % (self.getDataHour(item_list['observation_viz']))
+    image_descriptions['forecast_viz'] = "Forecast at %s" % (self.getDataHour(item_list['forecast_viz']))
+    image_descriptions['stdv_viz'] = "Observations vs %d-Hour Forecasts Over Time" % (frcast.gap_hour)
+    image_descriptions['animated_diff_viz'] = "Observations vs %d-Hour Forecasts Over Time" % (frcast.gap_hour)
 
     day_dir = self.parseDayDirectory(item_list['forecast_viz'])
-    file_fullpath = self.webdir + '/' +  day_dir + 'demo.html'
+    file_fullpath = self.webdir + '/' + day_dir + 'demo.html'
     html_file = open(file_fullpath, 'w+')
 
     self._writeHomePageHeader(html_file)
@@ -457,56 +440,50 @@ class WebsiteGenerator:
               <ul class='rig columns-2'>"""
 
     html_file.write(page_prefix)
-    
+
     ## Get relative paths for passed items
-    item_list = self.convertToRelativePathsUnderDayDir(item_list) 
+    item_list = self.convertToRelativePathsUnderDayDir(item_list)
     print item_list['observation_viz']
     print item_list['forecast_viz']
     print item_list['stdv_viz']
     print item_list['animated_diff_viz']
-    
 
-
-    html_file.write("<li><img src='" +  item_list['observation_viz'] + "' alt='observation' /><h3>"
-        + image_titles[0] + "</h3><p>" + image_descriptions['observation_viz'] + "</p></li>")
-    html_file.write("<li><img src='" +  item_list['forecast_viz'] + "' alt='forecast' /><h3>"
-        + image_titles[1] + "</h3><p>" + image_descriptions['forecast_viz'] + "</p></li></ul>")
+    html_file.write("<li><img src='" + item_list['observation_viz'] + "' alt='observation' /><h3>"
+                    + image_titles[0] + "</h3><p>" + image_descriptions['observation_viz'] + "</p></li>")
+    html_file.write("<li><img src='" + item_list['forecast_viz'] + "' alt='forecast' /><h3>"
+                    + image_titles[1] + "</h3><p>" + image_descriptions['forecast_viz'] + "</p></li></ul>")
     html_file.write("<ul class='rig columns-2'>")
-    html_file.write("<li><img src='" +  item_list['stdv_viz'] + "' alt='standard deviation'/><h3>"
-        + image_titles[2] + "</h3><p>" + image_descriptions['stdv_viz'] + "</p></li>")
-    html_file.write("<li><img src='" +  item_list['animated_diff_viz'] + "' alt='animated difference' /><h3>"
-        + image_titles[3] + "</h3><p>" + image_descriptions['animated_diff_viz'] + "</p></li></u>")
+    html_file.write("<li><img src='" + item_list['stdv_viz'] + "' alt='standard deviation'/><h3>"
+                    + image_titles[2] + "</h3><p>" + image_descriptions['stdv_viz'] + "</p></li>")
+    html_file.write("<li><img src='" + item_list['animated_diff_viz'] + "' alt='animated difference' /><h3>"
+                    + image_titles[3] + "</h3><p>" + image_descriptions['animated_diff_viz'] + "</p></li></u>")
 
     file_end = """</center></body></html>"""
     html_file.write(file_end)
     html_file.close()
 
-
   def convertToRelativePathsUnderDayDir(self, file_list):
     ##file_list is dictionary object
     for key, file in file_list.iteritems():
       arr = file.split('/')
-      relative_path = '/'.join(arr[len(arr)-2:])
+      relative_path = '/'.join(arr[len(arr) - 2:])
       file_list[key] = relative_path
     return file_list
 
-
   def getDataHour(self, file_name):
     arr = file_name.split('/')
-    arr = arr[len(arr)-1].split('.')
+    arr = arr[len(arr) - 1].split('.')
     return arr[1]
-
 
   def parseDayDirectory(self, file_name):
     # file_name = "web/2017/04/23/hrrr_fcast/hrrr_fcast.20170423_t00z.2MT_DPT.IND90k.wrfsfcf01.heatmap.png"
     seg = file_name.split('/')
     directory = ''
-    i = len(seg)-5
+    i = len(seg) - 5
     for m in range(3):
       directory += seg[i] + '/'
       i += 1
     return directory
-
 
   def _writeHomePageHeader(self, html_file):
     file_head = """
@@ -556,7 +533,7 @@ class WebsiteGenerator:
                   ul.rig.columns-4 li {
                       width: 22.5%; /* this value + 2.5 should = 25% */
                   }
-                   
+
                   @media (max-width: 480px) {
                       ul.grid-nav li {
                           display: block;
@@ -573,7 +550,7 @@ class WebsiteGenerator:
                           margin: 0 0 20px;
                       }
                   }
-                  
+
               </style>
           </head>"""
     html_file.write(file_head)
