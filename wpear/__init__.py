@@ -49,8 +49,9 @@ def main():
             help='Minimum latitude [DEFAULT: ' + str(MINLAT) + ']')
     parser.add('-f', '--minlon', type=float, required=False, default=MINLON, 
             help='Minimum longitude [DEFAULT: ' + str(MINLON) + ']')
-    parser.add('-v', '--variable', required=False, default=VAR,
-            help='Weather variable to use [DEFAULT: ' + str(VAR) + ']')
+    # not implemented yet
+    #parser.add('-v', '--variable', required=False, default=VAR,
+    #        help='Weather variable to use [DEFAULT: ' + str(VAR) + ']')
     parser.add('-p', '--threads', type=int, required=False, default=THREAD_MAX,
             help='Maximum threads to use [DEFAULT: ' + str(THREAD_MAX) + ']')
 
