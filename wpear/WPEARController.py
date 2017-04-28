@@ -35,12 +35,14 @@ def StartRun(options):
         hrrr_dates.append(now - (one_day_delta * i))
         rtma_dates.append(now - (one_day_delta * i))
 
+    data_list = []
     for date in hrrr_dates:
         hrrr_fcast = HRRRSurfaceForecasts.HRRRSurfaceForecasts(date,
                 VARS, DOMAIN, options, testing=options.testing)
         rtma_obs = RTMAObservations.RTMAObservations(date,
                 VARS, DOMAIN, options, testing=options.testing)
 
+        data_list.append((hrrr_fcast, rtma_obs))
 
         if os.path.exists(hrrr_fcast.local_directory):
             print 'Starting HRRR Forecasts for ' + date.strftime('%Y%m%d')
@@ -54,9 +56,9 @@ def StartRun(options):
             rtma_obs.VisualizeAnimatedDifference(hrrr_fcast, 'ADIF')
             rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
 
-            print "Generating Website"
-            wg = WebsiteGenerator.WebsiteGenerator(hrrr_fcast, rtma_obs, webdir = options.web_dir)
-            wg.runWebManager(hrrr_fcast, rtma_obs)
+        print "Generating Website"
+        wg = WebsiteGenerator.WebsiteGenerator(data_list, webdir = options.web_dir)
+        wg.runWebManager(hrrr_fcast, rtma_obs)
 
 
 

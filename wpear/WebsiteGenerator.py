@@ -5,7 +5,7 @@ import glob
 class WebsiteGenerator:
 
   
-  def __init__(self, hrrr_fcast, rtma_obs, webdir, landing_file='index.html', sidebar_file='sidebar.html'):
+  def __init__(self, data_list, webdir, landing_file='index.html', sidebar_file='sidebar.html'):
     
     self.landing_file = webdir + '/' + landing_file
     self.sidebar_file = webdir + '/' + sidebar_file
@@ -13,8 +13,7 @@ class WebsiteGenerator:
     self.sidebar_page = open(self.sidebar_file, 'w+')
     self.webdir = webdir
     self.now = datetime.datetime.utcnow()
-    self.rtma_obs = rtma_obs
-    self.hrrr_fcast = hrrr_fcast
+    self.data_list = data_list
 
 
   def runWebManager(self, hrrr_fcast, rtma_obs):
@@ -29,9 +28,13 @@ class WebsiteGenerator:
     first_day = first_dir[len(first_dir) - 2:]
     # #print first_day
     #day = int(first_day)
-    day = self.hrrr_fcast.date.day
-
     dir = first_dir[:len(first_dir) - 2]
+
+    for hrrr_fcast, rtma_obs in self.data_list:
+        self.hrrr_fcast = hrrr_fcast
+        self.rtma_obs = rtma_obs
+        day = self.hrrr_fcast.date.day
+
 
 #    while day <= now.day:
 #      ##print day
@@ -53,49 +56,49 @@ class WebsiteGenerator:
 #
 #
 
-    if day != now.day:
-      end_hour = 24
-    else:
-      end_hour = now.hour
+        if day != now.day:
+            end_hour = 24
+        else:
+          end_hour = now.hour
 
 #    while list_hour < end_hour:
 #      file_list.append(self.generateSectionTitle(day, list_hour))
 
 
-    fcast_list = []
-    for file in self.hrrr_fcast.forecast_animation_files:
-        if not os.path.exists(file):
-            continue
-        fcast_list.append(file)
-
-
-    rtma_list = []
-    for file in self.rtma_obs.visualization_heatmap_files:
-        if not os.path.exists(file):
-            continue
-        rtma_list.append(file)
-
-    std_dev_list = []
-    for file in self.rtma_obs.visualization_stddev_files:
-        if not os.path.exists(file):
-            continue
-        std_dev_list.append(file)
-
-    adif_list = []
-    adif_list.append('SECTION:Animated Difference')
-    for file in self.rtma_obs.visualization_animated_difference_files:
-        if not os.path.exists(file):
-            continue
-        adif_list.append((file, 'adiff'))
-
-
-
-    curr_file_list = self.generateFileList(day, end_hour, fcast_list, rtma_list, std_dev_list)
-    # #print curr_file_list, adif_list
-
-
-    self.generateDailyPage(adif_list, curr_file_list, hrrr_fcast)
-
+        fcast_list = []
+        for file in self.hrrr_fcast.forecast_animation_files:
+            if not os.path.exists(file):
+                continue
+            fcast_list.append(file)
+    
+    
+        rtma_list = []
+        for file in self.rtma_obs.visualization_heatmap_files:
+            if not os.path.exists(file):
+                continue
+            rtma_list.append(file)
+    
+        std_dev_list = []
+        for file in self.rtma_obs.visualization_stddev_files:
+            if not os.path.exists(file):
+                continue
+            std_dev_list.append(file)
+    
+        adif_list = []
+        adif_list.append('SECTION:Animated Difference')
+        for file in self.rtma_obs.visualization_animated_difference_files:
+            if not os.path.exists(file):
+                continue
+            adif_list.append((file, 'adiff'))
+    
+    
+    
+        curr_file_list = self.generateFileList(day, end_hour, fcast_list, rtma_list, std_dev_list)
+        # #print curr_file_list, adif_list
+    
+    
+        self.generateDailyPage(adif_list, curr_file_list, hrrr_fcast)
+    
 
   def showWebsite(self):
     #webbrowser.open_new(self.landing_file)

@@ -213,8 +213,8 @@ class WeatherData(object):
                         fcast_extra_info=forecast.extra_info,
                         var='2MTK', 
                         domain=self.domain,
-                        comp_tag=comparator_tag + '.f' + str(gap_hour))
-           
+                        comp_tag=comparator_tag + '.f%02d' % gap_hour)
+
             self.visualization_animated_difference_files.append(out_file)
 
             if os.path.exists(out_file) and datetime.datetime.now().day != self.date.day:
