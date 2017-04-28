@@ -53,12 +53,12 @@ def StartRun(options):
             print 'Starting RTMA Observations for ' + date.strftime('%Y%m%d')
             rtma_obs.VisualizeData()
             rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
-            rtma_obs.VisualizeAnimatedDifference(hrrr_fcast, 'ADIF')
             rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
+            rtma_obs.VisualizeAnimatedDifference(hrrr_fcast, 'ADIF')
 
-        print "Generating Website"
-        wg = WebsiteGenerator.WebsiteGenerator(data_list, webdir = options.web_dir)
-        wg.runWebManager(hrrr_fcast, rtma_obs)
+    print "Generating Website"
+    wg = WebsiteGenerator.WebsiteGenerator(data_list, webdir = options.web_dir)
+    wg.runWebManager(hrrr_fcast, rtma_obs)
 
 
 
