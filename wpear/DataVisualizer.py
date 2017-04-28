@@ -320,7 +320,7 @@ class DataVisualizer():
         axes.set_xticks(o_x)
         axes.set_autoscalex_on(True)
 
-        axes.set_ylabel('Temperature (Celsius)')
+        axes.set_ylabel('Temperature (Kelvin)')
         axes.set_autoscaley_on(True)
 
         # adding title
