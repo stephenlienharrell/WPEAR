@@ -34,12 +34,23 @@ Other flags allow you to config your local directory path and wgrib2 path.
 ### Config Wgrib2
 * -w/--wgrib - Set path for wgrib2
 
+### Config imagemagick
+* -i/--imconvert - Set path for imagemagick
+
+### Config Geo Latitudes and Longitudes (Under Development)
+* -r/--maxlat - Set max latitude
+* -a/--maxlon - Set max longitude
+* -s/--minlat - Set min latitude
+* -f/--minlon - Set min longitude
+
 ### Other Flags
 * -h/--help - Display all the available flag options
 * -t/--testing - Set testing mode to be true
 * -q/--quiet - Silence console output
 * -c/--config - Location of config file
 * -e/--egrep - Path for egrep
+* -v/--variable - Select analysis weather variable (Under Development)
+* -p/--threads - Set maximum threads to use
 
 ### Output Directory
 By default, WPEAR stores all the generated files including converted grib files, visualization files as well

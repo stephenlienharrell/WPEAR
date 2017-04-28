@@ -517,6 +517,7 @@ class WebsiteGenerator:
     image_descriptions['observation_viz'] = "Observation at %s"%(self.getDataHour(item_list['observation_viz']))
     image_descriptions['forecast_viz'] = "Forecast at %s"%(self.getDataHour(item_list['forecast_viz']))
     image_descriptions['stdv_viz'] = "Observations vs %d-Hour Forecasts Over Time"%(frcast.gap_hour)
+    # image_descriptions['stdv_viz'] = "Current Observation vs 18-Hour Forecasts Over Time"
     image_descriptions['animated_diff_viz'] = "Observations vs %d-Hour Forecasts Over Time"%(frcast.gap_hour)
 
     day_dir = self.parseDayDirectory(item_list['forecast_viz'])
