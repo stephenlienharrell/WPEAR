@@ -139,7 +139,7 @@ class WeatherData(object):
                 obs_extra_info=self.extra_info, fcast_tag=forecast.tag, 
                 vars='2MTK', domain=self.domain, comp_tag=comparator_tag)
 
-            self.visualization_stddev_files.append(output_name)
+            self.visualization_stddev_files.append(output_name)  ## Possible to append duplicate file_name?
 
             if os.path.exists(output_name):
                 continue
@@ -307,13 +307,10 @@ class WeatherData(object):
                    '/' + forecast.output_filename_format_heatmap_viz.format(
                    time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
                    domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
-        # fcast_file =  (forecast.tag + '/' + forecast.output_filename_format_heatmap_viz.format(
-        #             time=fcast_date.strftime('%Y%m%d') + '_' + gmt_plus, vars='_'.join(forecast.vars),
-        #             domain=forecast.domain, forecast_number=self.gap_hour, extra_info=forecast.extra_info))
 
         item_list['forecast_viz'] = fcast_file
         item_list['observation_viz'] = latest_obs_file
-        item_list['stdv_viz'] = self.visualization_stddev_files[0]
+        item_list['stdv_viz'] = self.visualization_stddev_files[0] ## Need one for current hour(last index instead?)
         item_list['animated_diff_viz'] = self.visualization_animated_difference_files[0]
         return item_list
             
