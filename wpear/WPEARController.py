@@ -53,15 +53,11 @@ def StartRun(options):
             rtma_obs.VisualizeDifference(hrrr_fcast, 'DIF')
             rtma_obs.VisualizeAnimatedDifference(hrrr_fcast, 'ADIF')
             rtma_obs.VisualizeStandardDeviation(hrrr_fcast)
-            
-        if os.path.exists(rtma_obs.local_directory) and os.path.exists(hrrr_fcast.local_directory):
-            wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
+
+            print "Generating Website"
+            wg = WebsiteGenerator.WebsiteGenerator(hrrr_fcast, rtma_obs, webdir = options.web_dir)
             wg.runWebManager(hrrr_fcast, rtma_obs)
-        
-    # not sure how hrrr_fcast/rtma_obs exist out-of-scope
-    # but it works
-    wg = WebsiteGenerator.WebsiteGenerator(webdir = options.web_dir)
-    wg.runWebManager(hrrr_fcast, rtma_obs)
+
 
 
 #    for date in hrrr_dates:

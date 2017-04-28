@@ -5,7 +5,7 @@ import glob
 class WebsiteGenerator:
 
   
-  def __init__(self, webdir, landing_file='index.html', sidebar_file='sidebar.html'):
+  def __init__(self, hrrr_fcast, rtma_obs, webdir, landing_file='index.html', sidebar_file='sidebar.html'):
     
     self.landing_file = webdir + '/' + landing_file
     self.sidebar_file = webdir + '/' + sidebar_file
@@ -13,6 +13,8 @@ class WebsiteGenerator:
     self.sidebar_page = open(self.sidebar_file, 'w+')
     self.webdir = webdir
     self.now = datetime.datetime.utcnow()
+    self.rtma_obs = rtma_obs
+    self.hrrr_fcast = hrrr_fcast
 
 
   def runWebManager(self, hrrr_fcast, rtma_obs):
@@ -25,34 +27,75 @@ class WebsiteGenerator:
     now = datetime.datetime.utcnow()
     first_dir = self.getFirstDay()
     first_day = first_dir[len(first_dir) - 2:]
-    # print first_day
-    day = int(first_day)
+    # #print first_day
+    #day = int(first_day)
+    day = self.hrrr_fcast.date.day
 
     dir = first_dir[:len(first_dir) - 2]
 
-    while day <= now.day:
-      #print day
-      diff_list = self.generatePNGList('ADIF', dir, '/*.gif')
-      fcast_list = self.generatePNGList('hrrr_fcast', dir, '/*.gif')
-      rtma_list = self.generatePNGList('rtma_obs', dir, '/*.png')
-      std_dev_list = self.generatePNGList('stddev', dir, '/*.png')
-      # print diff_list
-      if day != now.day:
-        end_hour = 24
-      else:
-        end_hour = now.hour
+#    while day <= now.day:
+#      ##print day
+#      diff_list = self.generatePNGList('ADIF', dir, '/*.gif')
+#      fcast_list = self.generatePNGList('hrrr_fcast', dir, '/*.gif')
+#      rtma_list = self.generatePNGList('rtma_obs', dir, '/*.png')
+#      std_dev_list = self.generatePNGList('stddev', dir, '/*.png')
+#      # #print diff_list
+#      if day != now.day:
+#        end_hour = 24
+#      else:
+#        end_hour = now.hour
+#
+#      adif_list = []
+#      adif_list.append("SECTION:Animated Difference GIFs")
+#      for item in diff_list:
+#        if item not in adif_list:
+#            adif_list.append([item, "diff"])
+#
+#
 
-      adif_list = []
-      adif_list.append("SECTION:Animated Difference GIFs")
-      for item in diff_list:
-        if item not in adif_list:
-            adif_list.append([item, "diff"])
+    if day != now.day:
+      end_hour = 24
+    else:
+      end_hour = now.hour
 
-      curr_file_list = self.generateFileList(day, end_hour, fcast_list, rtma_list, std_dev_list)
-      # print curr_file_list, adif_list
-      self.generateDailyPage(adif_list, curr_file_list, hrrr_fcast)
+#    while list_hour < end_hour:
+#      file_list.append(self.generateSectionTitle(day, list_hour))
 
-      day += 1
+
+    fcast_list = []
+    for file in self.hrrr_fcast.forecast_animation_files:
+        if not os.path.exists(file):
+            continue
+        fcast_list.append(file)
+
+
+    rtma_list = []
+    for file in self.rtma_obs.visualization_heatmap_files:
+        if not os.path.exists(file):
+            continue
+        rtma_list.append(file)
+
+    std_dev_list = []
+    for file in self.rtma_obs.visualization_stddev_files:
+        if not os.path.exists(file):
+            continue
+        std_dev_list.append(file)
+
+    adif_list = []
+    adif_list.append('SECTION:Animated Difference')
+    for file in self.rtma_obs.visualization_animated_difference_files:
+        if not os.path.exists(file):
+            continue
+        adif_list.append((file, 'adiff'))
+
+
+
+    curr_file_list = self.generateFileList(day, end_hour, fcast_list, rtma_list, std_dev_list)
+    # #print curr_file_list, adif_list
+
+
+    self.generateDailyPage(adif_list, curr_file_list, hrrr_fcast)
+
 
   def showWebsite(self):
     #webbrowser.open_new(self.landing_file)
@@ -66,12 +109,12 @@ class WebsiteGenerator:
     while list_hour < end_hour:
       file_list.append(self.generateSectionTitle(day, list_hour))
       for item in rtma_obs:
-        # print inrange(item, day, end_hour)
+        # #print inrange(item, day, end_hour)
         if self.inrange(item, day, list_hour) == 0:
           file_list.append([item, "obs"])
 
       for item in hrrr_fcast:
-        # print inrange(item, day)
+        # #print inrange(item, day)
         if self.inrange(item, day, list_hour) == 0:
           file_list.append([item, "fcast"])
 
@@ -81,6 +124,8 @@ class WebsiteGenerator:
 
       list_hour += 1
 
+    ##print 'new file list'
+    ##print '{}'.format(file_list)
     return file_list
 
   def generatePNGList(self, check, pr_dir, type):
@@ -95,7 +140,7 @@ class WebsiteGenerator:
           list_of_files += glob.glob(tmp_dir)
           list_of_files.sort()
 
-    #print 'list of files: {}'.format(list_of_files)
+    ##print 'list of files: {}'.format(list_of_files)
     for item in list_of_files:
       if item in pnglist:
         continue
@@ -119,7 +164,7 @@ class WebsiteGenerator:
 
     lowest_dir = os.path.normpath(lowest_dir)
 
-    #print lowest_dir
+    ##print lowest_dir
     return lowest_dir
 
   def generateSectionTitle(self, list_date, list_hour):
@@ -323,7 +368,7 @@ class WebsiteGenerator:
 
 
   def generateDailyPage(self, adiff_list, item_list, hrrr_fcast):
-    #print 'item_list = {}'.format(item_list)
+    ##print 'item_list = {}'.format(item_list)
     list_hour = -1
 
     dir_file = None
@@ -336,15 +381,15 @@ class WebsiteGenerator:
       return
 
     dir = self.parseDirectory(self.webdir, dir_file)
-    #print 'dir =' + dir
-    #print 'dir file =' + dir_file
+    ##print 'dir =' + dir
+    ##print 'dir file =' + dir_file
     img_src_dir = os.path.normpath(dir)
 
     day_dir = hrrr_fcast.local_directory[:hrrr_fcast.local_directory.rfind('/')]
     dir = day_dir + '/day.html'
     file_fullpath = os.path.realpath(dir)
     html_file = open(file_fullpath, 'w+')
-    #print file_fullpath
+    ##print file_fullpath
 
     file_head = """<html><head>
             <font size="3"><title>WPEAR</title>
@@ -358,14 +403,14 @@ class WebsiteGenerator:
         html_file.write("""<br><center><h2><p>""" + item.split("SECTION:")[1] + """</p></h2></center>""")
         continue
       elif len(item) > 1:
-        item[0] = item[0].split('/')[-2] + '/' + item[0].split('/')[-1]
-        #print item[0]
-        title = self.generateTitle(-1, item[0], "adif")
+        thing = item[0].split('/')[-2] + '/' + item[0].split('/')[-1]
+        ##print item[0]
+        title = self.generateTitle(-1, thing, "adif")
         html_file.write(
           """<p style="float:left;font-size:18pt;text-align:center;""" +
           """min-width:500px;max-width:550px;min-height:700px;max-height:800px;width:40%;margin-left:2%;margin-right:2%;">""")
         html_file.write(
-          title + """<img src='""" + item[0] + """' alt='""" + item[1] +
+          title + """<img src='""" + thing + """' alt='""" + item[1] +
           """' style=""" + image_size + """'></p>""")
     html_file.write("""<p style="clear: both;"><hr>""")
 
@@ -378,6 +423,7 @@ class WebsiteGenerator:
         continue
       elif len(item) > 1:
         item[0] = item[0].split('/')[-2] + '/' + item[0].split('/')[-1]
+        #print item[0]
         title = self.generateTitle(list_hour, item[0], item[1])
         html_file.write(
           """<p style="float:left;font-size:18pt;text-align:center;""")
@@ -389,7 +435,7 @@ class WebsiteGenerator:
           html_file.write(
             """min-width:500px;max-width:550px;min-height:700px;max-height:800px;width:43%;margin-right:2%;margin-left:2%">""")
         html_file.write(
-          title + """<img src='""" + os.path.relpath(item[0], img_src_dir) + """' alt='""" + item[1] +
+          title + """<img src='""" + item[0] + """' alt='""" + item[1] +
           """' style=""" + image_size + """'></p>""")
 
     file_end = """</body></html>"""
@@ -447,14 +493,14 @@ class WebsiteGenerator:
     ## Get source files
     graphs = obs.GetDemoGraphs(frcast)
     if len(graphs) == 0:
-        print "No Graphs"
+        #print "No Graphs"
         return None
     ## Generate home page
     self.generateHomePage(graphs, frcast)
     ## Get the demo.html's relative path
     relative_day_dir = '/'.join(frcast.date.strftime(frcast.local_directory_date_format).split('/')[:-1])
     demowebpath = relative_day_dir[1:] + '/demo.html'
-    # print demowebpath
+    # #print demowebpath
     return demowebpath
 
 
@@ -488,10 +534,10 @@ class WebsiteGenerator:
     
     ## Get relative paths for passed items
     item_list = self.convertToRelativePathsUnderDayDir(item_list) 
-    #print item_list['observation_viz']
-    #print item_list['forecast_viz']
-    #print item_list['stdv_viz']
-    #print item_list['animated_diff_viz']
+    ##print item_list['observation_viz']
+    ##print item_list['forecast_viz']
+    ##print item_list['stdv_viz']
+    ##print item_list['animated_diff_viz']
     
 
 
