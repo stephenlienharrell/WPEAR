@@ -49,7 +49,6 @@ Other flags allow you to config your local directory path and wgrib2 path.
 * -q/--quiet - Silence console output
 * -c/--config - Location of config file
 * -e/--egrep - Path for egrep
-* -v/--variable - Select analysis weather variable (Under Development)
 * -p/--threads - Set maximum threads to use
 
 ### Output Directory
